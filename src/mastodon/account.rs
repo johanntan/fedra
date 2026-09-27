@@ -64,6 +64,10 @@ pub struct Source {
 	pub privacy: Option<String>,
 	pub sensitive: Option<bool>,
 	pub language: Option<String>,
+	/// Profile fields as the user typed them, rather than the rendered HTML in
+	/// [`Account::fields`], where links get shortened for display.
+	#[serde(default)]
+	pub fields: Vec<AccountField>,
 }
 
 #[derive(Debug, Clone, Deserialize)]

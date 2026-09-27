@@ -505,7 +505,7 @@ pub(super) fn view_thread(ctx: &mut UiCommandContext<'_>) {
 				let ui_tx_close = ui_tx.clone();
 				let dlg = dialogs::ProfileDialog::new(
 					frame,
-					account.clone(),
+					(**account).clone(),
 					state.current_user_id.as_deref(),
 					net_tx,
 					ui_tx.clone(),

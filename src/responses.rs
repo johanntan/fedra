@@ -219,8 +219,10 @@ fn handle_response(
 				dlg.update_account(&account);
 			}
 		}
-		NetworkResponse::CredentialsFetched { result: Ok(account) } => accounts::credentials_fetched(ctx, &account),
-		NetworkResponse::CredentialsFetched { result: Err(err) } => {
+		NetworkResponse::CredentialsFetched { result: Ok(account), max_profile_fields } => {
+			accounts::credentials_fetched(ctx, &account, max_profile_fields);
+		}
+		NetworkResponse::CredentialsFetched { result: Err(err), .. } => {
 			ctx.announce_failure("Failed to fetch profile", &err);
 		}
 		NetworkResponse::ProfileUpdated { result: Ok(account) } => accounts::profile_updated(ctx, account),

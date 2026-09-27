@@ -2,7 +2,14 @@ use wxdragon::prelude::*;
 
 use crate::{html, mastodon::Account, network::ProfileUpdate};
 
-pub fn show_profile_edit_dialog(frame: &Frame, current: &Account) -> Option<ProfileUpdate> {
+/// Mastodon's limit before 4.6, which is when instances started reporting it.
+const DEFAULT_MAX_PROFILE_FIELDS: usize = 4;
+
+pub fn show_profile_edit_dialog(
+	frame: &Frame,
+	current: &Account,
+	max_profile_fields: Option<usize>,
+) -> Option<ProfileUpdate> {
 	let dialog = Dialog::builder(frame, "Edit Profile").with_size(600, 600).build();
 	let panel = Panel::builder(&dialog).build();
 	let main_sizer = BoxSizer::builder(Orientation::Vertical).build();
@@ -52,14 +59,19 @@ pub fn show_profile_edit_dialog(frame: &Frame, current: &Account) -> Option<Prof
 	let discoverable_cb = CheckBox::builder(&scroll_win).with_label("&Discoverable in directory").build();
 	discoverable_cb.set_value(current.discoverable.unwrap_or(false));
 	content_sizer.add(&discoverable_cb, 0, SizerFlag::All, 5);
+	// Prefer the raw source values: the rendered ones have links shortened for
+	// display, which would be saved back shortened.
+	let existing_fields: Vec<(String, String)> = current.source.as_ref().filter(|s| !s.fields.is_empty()).map_or_else(
+		|| current.fields.iter().map(|f| (f.name.clone(), html::strip_html(&f.value))).collect(),
+		|source| source.fields.iter().map(|f| (f.name.clone(), f.value.clone())).collect(),
+	);
+	// Never show fewer rows than the profile already has, or saving would drop
+	// the extra ones.
+	let field_count = max_profile_fields.unwrap_or(DEFAULT_MAX_PROFILE_FIELDS).max(existing_fields.len());
 	let mut field_controls = Vec::new();
-	for i in 0..4 {
+	for i in 0..field_count {
 		let row_sizer = BoxSizer::builder(Orientation::Horizontal).build();
-		let (name_val, val_val) = if i < current.fields.len() {
-			(current.fields[i].name.clone(), html::strip_html(&current.fields[i].value))
-		} else {
-			(String::new(), String::new())
-		};
+		let (name_val, val_val) = existing_fields.get(i).cloned().unwrap_or_default();
 		let title_lbl = format!("Field {} label", i + 1);
 		let content_lbl = format!("Field {} content", i + 1);
 		let field_sizer = BoxSizer::builder(Orientation::Vertical).build();
@@ -163,7 +175,7 @@ pub fn show_profile_edit_dialog(frame: &Frame, current: &Account) -> Option<Prof
 	for (name_ctrl, val_ctrl) in &field_controls {
 		let name = name_ctrl.get_value();
 		let val = val_ctrl.get_value();
-		// Always send all fields to preserve indices (0..3) so the server knows which to update/clear
+		// Always send every row, blank ones included, so the server clears any field that was emptied
 		fields_attributes.push((name, val));
 	}
 	let source = if let (Some(privacy_choice), Some(sensitive_cb), Some(lang_text)) =
@@ -179,6 +191,7 @@ pub fn show_profile_edit_dialog(frame: &Frame, current: &Account) -> Option<Prof
 			privacy: Some(privacy),
 			sensitive: Some(sensitive_cb.get_value()),
 			language: Some(lang_text.get_value()),
+			fields: Vec::new(),
 		})
 	} else {
 		None

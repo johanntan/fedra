@@ -71,7 +71,7 @@ pub(super) fn view_profile(ctx: &mut UiCommandContext<'_>) {
 			}
 		}
 		TimelineEntry::Notification(notification) => (notification.account.clone(), dialogs::UserLookupAction::Profile),
-		TimelineEntry::Account(account) => (account.clone(), dialogs::UserLookupAction::Profile),
+		TimelineEntry::Account(account) => ((**account).clone(), dialogs::UserLookupAction::Profile),
 		TimelineEntry::Hashtag(_) => {
 			live_region.announce("Cannot view profile for a hashtag");
 			return;
@@ -188,7 +188,7 @@ pub(super) fn open_user_timeline(ctx: &mut UiCommandContext<'_>) {
 		TimelineEntry::Notification(notification) => {
 			(notification.account.clone(), dialogs::UserLookupAction::Timeline)
 		}
-		TimelineEntry::Account(account) => (account.clone(), dialogs::UserLookupAction::Timeline),
+		TimelineEntry::Account(account) => ((**account).clone(), dialogs::UserLookupAction::Timeline),
 		TimelineEntry::Hashtag(_) => {
 			live_region.announce("Cannot view user timeline for a hashtag");
 			return;

@@ -10,6 +10,33 @@ pub(super) struct InstanceResponse {
 	pub(super) configuration: Option<InstanceConfiguration>,
 	#[serde(default)]
 	pub(super) urls: Option<InstanceUrls>,
+	/// Pleroma and Akkoma report their profile field limit here.
+	#[serde(default)]
+	pub(super) pleroma: Option<PleromaInstance>,
+}
+
+#[derive(Debug, Deserialize)]
+pub(super) struct PleromaInstance {
+	#[serde(default)]
+	pub(super) metadata: Option<PleromaMetadata>,
+}
+
+#[derive(Debug, Deserialize)]
+pub(super) struct PleromaMetadata {
+	#[serde(default)]
+	pub(super) fields_limits: Option<PleromaFieldsLimits>,
+}
+
+#[derive(Debug, Deserialize)]
+pub(super) struct PleromaFieldsLimits {
+	#[serde(default)]
+	pub(super) max_fields: Option<u32>,
+}
+
+#[derive(Debug, Deserialize)]
+pub(super) struct InstanceV2Response {
+	#[serde(default)]
+	pub(super) configuration: Option<InstanceConfiguration>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -24,6 +51,14 @@ pub(super) struct InstanceConfiguration {
 	pub(super) statuses: Option<StatusConfiguration>,
 	#[serde(default)]
 	pub(super) polls: Option<PollConfiguration>,
+	#[serde(default)]
+	pub(super) accounts: Option<AccountConfiguration>,
+}
+
+#[derive(Debug, Deserialize)]
+pub(super) struct AccountConfiguration {
+	#[serde(default)]
+	pub(super) max_profile_fields: Option<u32>,
 }
 
 #[derive(Debug, Deserialize)]

@@ -290,8 +290,12 @@ fn relationship_message(action: RelationshipAction, target_name: &str) -> String
 	}
 }
 
-pub(super) fn credentials_fetched(ctx: &NetworkResponseContext<'_>, account: &Account) {
-	if let Some(update) = dialogs::show_profile_edit_dialog(ctx.frame, account)
+pub(super) fn credentials_fetched(
+	ctx: &NetworkResponseContext<'_>,
+	account: &Account,
+	max_profile_fields: Option<usize>,
+) {
+	if let Some(update) = dialogs::show_profile_edit_dialog(ctx.frame, account, max_profile_fields)
 		&& let Some(handle) = &ctx.state.network_handle
 	{
 		handle.send(NetworkCommand::UpdateProfile { update });

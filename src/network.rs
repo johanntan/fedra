@@ -439,6 +439,7 @@ pub enum NetworkResponse {
 	},
 	CredentialsFetched {
 		result: Result<Account>,
+		max_profile_fields: Option<usize>,
 	},
 	ProfileUpdated {
 		result: Result<Account>,
@@ -1235,7 +1236,8 @@ fn network_loop(
 			}
 			Ok(NetworkCommand::FetchCredentials) => {
 				let result = client.verify_credentials(access_token);
-				send_response(responses, ui_waker, NetworkResponse::CredentialsFetched { result });
+				let max_profile_fields = if result.is_ok() { client.get_max_profile_fields() } else { None };
+				send_response(responses, ui_waker, NetworkResponse::CredentialsFetched { result, max_profile_fields });
 			}
 			Ok(NetworkCommand::UpdateProfile { update }) => {
 				let result = client.update_credentials(

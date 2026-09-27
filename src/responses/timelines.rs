@@ -237,7 +237,7 @@ pub(super) fn search_loaded(
 		if let Some(timeline) = state.timeline_manager.get_mut(&timeline_type) {
 			let mut new_entries: Vec<TimelineEntry> = Vec::new();
 			for account in results.accounts {
-				new_entries.push(TimelineEntry::Account(account));
+				new_entries.push(TimelineEntry::Account(Box::new(account)));
 			}
 			for hashtag in results.hashtags {
 				new_entries.push(TimelineEntry::Hashtag(hashtag));

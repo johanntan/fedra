@@ -133,7 +133,7 @@ impl TimelineType {
 pub enum TimelineEntry {
 	Status(Box<Status>),
 	Notification(Box<Notification>),
-	Account(Account),
+	Account(Box<Account>),
 	Hashtag(Tag),
 }
 
