@@ -1,5 +1,5 @@
 use std::{
-	cell::RefCell,
+	cell::{Cell, RefCell},
 	collections::HashMap,
 	path::PathBuf,
 	rc::Rc,
@@ -530,6 +530,10 @@ pub fn show_media_player(_parent: &dyn WxWidget, url: String, kind: &str, _acces
 	});
 	start_background_download(url.clone(), progress.clone());
 	let state: Rc<RefCell<Option<PlayerState>>> = Rc::new(RefCell::new(Some(PlayerState::Loading(progress.clone()))));
+	// Set when Space is pressed before the media is ready, so playback starts
+	// on its own once loading finishes instead of the press being dropped and
+	// the user having to guess when to try again.
+	let play_when_ready = Rc::new(Cell::new(false));
 	let still_loading = Arc::new(AtomicBool::new(true));
 	let ticker_id = NEXT_TASK_ID.fetch_add(1, Ordering::Relaxed);
 	ACTIVE_TICKS.with(|t| {
@@ -553,9 +557,16 @@ pub fn show_media_player(_parent: &dyn WxWidget, url: String, kind: &str, _acces
 	spawn_loading_ticker(ticker_id, progress.clone(), still_loading.clone());
 	frame.on_menu_selected({
 		let state = state.clone();
+		let play_when_ready = play_when_ready.clone();
 		let frm = frame;
 		move |event| match event.get_id() {
 			ID_PLAY_PAUSE => {
+				if matches!(state.borrow().as_ref(), Some(PlayerState::Loading(_))) {
+					let queued = !play_when_ready.get();
+					play_when_ready.set(queued);
+					lr.announce(if queued { "Queued" } else { "Unqueued" });
+					return;
+				}
 				with_session(&state, &lr, |s| {
 					if s.player.empty() {
 						// Reached the end: start over from the beginning
@@ -654,9 +665,13 @@ pub fn show_media_player(_parent: &dyn WxWidget, url: String, kind: &str, _acces
 				match outcome {
 					Ok((output, decoded)) => {
 						let player = rodio::Player::connect_new(output.mixer());
-						// Wait for the user to press play rather than starting immediately.
+						// Wait for the user to press play rather than starting immediately,
+						// unless they already pressed it while loading.
 						player.pause();
 						player.append(decoded.decoder);
+						if play_when_ready.get() {
+							player.play();
+						}
 						let session = PlaybackSession {
 							_output: output,
 							player,
