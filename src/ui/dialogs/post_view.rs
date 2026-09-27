@@ -1,10 +1,57 @@
+use std::fmt::Write;
+
 use wxdragon::{
 	event::{WebViewEventData, WebViewEvents},
 	prelude::*,
 	widgets::WebView,
 };
 
-use crate::{ID_BOOST, ID_FAVORITE, ID_REPLY, UiCommand, mastodon::Status};
+use crate::{
+	ID_BOOST, ID_FAVORITE, ID_REPLY, UiCommand,
+	mastodon::{MediaAttachment, Status},
+};
+
+fn escape_html(text: &str) -> String {
+	let mut out = String::with_capacity(text.len());
+	for ch in text.chars() {
+		match ch {
+			'&' => out.push_str("&amp;"),
+			'<' => out.push_str("&lt;"),
+			'>' => out.push_str("&gt;"),
+			'"' => out.push_str("&quot;"),
+			'\'' => out.push_str("&#39;"),
+			_ => out.push(ch),
+		}
+	}
+	out
+}
+
+/// Lists each attachment with its alt text under a heading, so screen reader
+/// users can jump to it and read the descriptions like the rest of the post.
+fn media_html(media: &[MediaAttachment]) -> String {
+	if media.is_empty() {
+		return String::new();
+	}
+	let mut html = String::from("<h3>Media</h3><ul>");
+	for (index, attachment) in media.iter().enumerate() {
+		let kind = match attachment.kind.as_str() {
+			"image" => "Image",
+			"gifv" => "GIF",
+			"video" => "Video",
+			"audio" => "Audio",
+			_ => "Attachment",
+		};
+		let description = attachment
+			.description
+			.as_deref()
+			.map(str::trim)
+			.filter(|d| !d.is_empty())
+			.map_or_else(|| "No description".to_string(), escape_html);
+		let _ = write!(html, "<li>{kind} {}: {description}</li>", index + 1);
+	}
+	html.push_str("</ul>");
+	html
+}
 
 fn strip_quote_html(html: &str) -> String {
 	if let Some(start) = html.find("<span class=\"quote-inline\">")
@@ -74,6 +121,7 @@ pub fn show_post_view_dialog(parent: &Frame, status: &Status) -> Option<UiComman
 	} else {
 		format!("<p><strong>Content Warning: {}</strong></p><hr>{}", status.spoiler_text, status.content)
 	};
+	content.push_str(&media_html(&status.media_attachments));
 	if let Some(quote) = status.quote.as_ref().and_then(|q| q.quoted_status.as_ref()) {
 		content = strip_quote_html(&content);
 		let quote_author = quote.account.display_name_or_username();
@@ -83,11 +131,13 @@ pub fn show_post_view_dialog(parent: &Frame, status: &Status) -> Option<UiComman
 		} else {
 			format!("<p><strong>Content Warning: {}</strong></p><hr>{}", quote.spoiler_text, quote.content)
 		};
+		let quote_media = media_html(&quote.media_attachments);
 		content = format!(
 			"{content}
 			<blockquote style=\"border-left: 4px solid #ccc; margin-left: 0; padding-left: 10px; color: #555;\">
 				<strong>{quote_author} <small>({quote_acct})</small></strong>
 				{quote_content}
+				{quote_media}
 			</blockquote>"
 		);
 	}

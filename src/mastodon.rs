@@ -21,6 +21,6 @@ pub use list::List;
 pub use notification::Notification;
 pub use poll::{Poll, PollLimits};
 pub use search::{SearchResults, SearchType};
-pub use status::{Conversation, Mention, PostSubmission, Status, StatusContext, StatusSource};
+pub use status::{Conversation, MediaAttachment, Mention, PostSubmission, Status, StatusContext, StatusSource};
 pub use tag::Tag;
 pub use time::friendly_time_local;
