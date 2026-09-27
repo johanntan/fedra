@@ -26,7 +26,7 @@ pub const ID_ACTION_DISABLE_NOTIFICATIONS: i32 = 6016;
 pub const ID_ACTION_SEND_DIRECT_MESSAGE: i32 = 6017;
 
 pub fn append_relationship_text(text: &mut String, relationship: &Relationship, is_own_account: bool) {
-	text.push_str("\r\n\r\nRelationship:\r\n");
+	let mut body = String::new();
 	if !is_own_account {
 		let follow_status = match (relationship.following, relationship.followed_by) {
 			(true, true) => "You follow each other.",
@@ -34,29 +34,33 @@ pub fn append_relationship_text(text: &mut String, relationship: &Relationship, 
 			(false, true) => "This person follows you.",
 			(false, false) => "You do not follow each other.",
 		};
-		let _ = writeln!(text, "{follow_status}");
+		let _ = writeln!(body, "{follow_status}");
 	}
 	if relationship.requested {
-		text.push_str("You have requested to follow this person.\r\n");
+		body.push_str("You have requested to follow this person.\r\n");
 	}
 	if relationship.requested_by {
-		text.push_str("This person has requested to follow you.\r\n");
+		body.push_str("This person has requested to follow you.\r\n");
 	}
 	if relationship.blocking {
-		text.push_str("You have blocked this person.\r\n");
+		body.push_str("You have blocked this person.\r\n");
 	}
 	if relationship.muting {
-		text.push_str("You have muted this person.\r\n");
+		body.push_str("You have muted this person.\r\n");
 	}
 	if relationship.domain_blocking {
-		text.push_str("You have blocked this person's domain.\r\n");
+		body.push_str("You have blocked this person's domain.\r\n");
 	}
 	if !relationship.note.is_empty() {
 		let note = crate::html::strip_html(&relationship.note);
 		if !note.trim().is_empty() {
-			text.push_str("\r\nNote:\r\n");
-			text.push_str(&note);
+			body.push_str("\r\nNote:\r\n");
+			body.push_str(&note);
 		}
+	}
+	if !body.is_empty() {
+		text.push_str("\r\n\r\nRelationship:\r\n");
+		text.push_str(&body);
 	}
 }
 
