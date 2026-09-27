@@ -23,14 +23,14 @@ serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"
 tungstenite = { version = "0.30.0", features = ["rustls-tls-native-roots"] }
 url = "2.5.8"
-wx-utils = { version = "0.3.0", features = ["shortcuts"] }
+wx-utils = { version = "0.3.1", features = ["shortcuts"] }
 wxdragon = { version = "0.9.22", features = ["webview"] }
-accesskit = "0.25.0"
+accesskit = "0.25.1"
 rodio = { version = "0.22.2", default-features = false, features = ["playback", "mp4", "mp3", "vorbis", "wav", "flac"] }
 image = { version = "0.25.10", default-features = false, features = ["png", "jpeg", "gif", "webp", "bmp"] }
 
 [target.'cfg(windows)'.dependencies]
-accesskit_windows = "0.35.0"
+accesskit_windows = "0.35.1"
 windows = { version = "0.62.2", features = ["Win32_Foundation", "Win32_Graphics_Gdi", "Win32_System_Threading", "Win32_System_Variant", "Win32_UI_Accessibility", "Win32_UI_Controls", "Win32_UI_Input", "Win32_UI_Input_KeyboardAndMouse", "Win32_UI_WindowsAndMessaging"] }
 
 [build-dependencies]
