@@ -184,6 +184,9 @@ pub fn get_sound_path() -> std::path::PathBuf {
 		.unwrap_or_else(|| std::path::PathBuf::from("sounds/boop.mp3"))
 }
 
+/// Passed by the Run registry value the installer adds when "Run at startup" is checked.
+const STARTUP_ARG: &str = "--startup";
+
 fn drain_ui_commands(ui_rx: &mpsc::Receiver<UiCommand>, ctx: &mut UiCommandContext<'_>) {
 	while let Ok(cmd) = ui_rx.try_recv() {
 		handle_ui_command(cmd, ctx);
@@ -224,9 +227,11 @@ fn main() {
 		let suppress_selection = Rc::new(Cell::new(false));
 		let wake_busy = Rc::new(Cell::new(false));
 		let wake_reschedule = Rc::new(Cell::new(false));
-		let tray_hidden = Rc::new(Cell::new(false));
 		let store = config::ConfigStore::new();
 		let config = store.load();
+		let launched_at_startup = std::env::args().any(|arg| arg == STARTUP_ARG);
+		let start_hidden = launched_at_startup && config.saved_window_hidden && !config.accounts.is_empty();
+		let tray_hidden = Rc::new(Cell::new(start_hidden));
 		let ui_alive = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(true));
 		let ui_waker = UiWaker::new(frame, ui_alive.clone());
 		let ui_tx = UiCommandSender::new(ui_tx_raw, ui_waker.clone());
@@ -385,7 +390,9 @@ fn main() {
 				event.skip(false); // Wait for AppClosing command to be processed
 			}
 		});
-		frame.show(true);
 		frame.centre();
+		if !start_hidden {
+			frame.show(true);
+		}
 	});
 }

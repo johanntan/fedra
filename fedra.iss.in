@@ -29,10 +29,15 @@
 [Tasks]
 	Name: "desktopicon"; Description: "Desktop Shortcut"
 	Name: "startmenuicon"; Description: "Start Menu Shortcut"; Flags: unchecked
+	Name: "startup"; Description: "Run at startup"; Flags: unchecked
 
 [Icons]
 	Name: "{autodesktop}\Fedra"; Filename: "{app}\fedra.exe"; Tasks: desktopicon
 	Name: "{autoprograms}\Fedra"; Filename: "{app}\fedra.exe"; Tasks: startmenuicon
+
+[Registry]
+	Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "Fedra"; ValueData: """{app}\fedra.exe"" --startup"; Tasks: startup; Flags: uninsdeletevalue
+	Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueName: "Fedra"; ValueType: none; Tasks: not startup; Flags: deletevalue dontcreatekey
 
 [Run]
 	Filename: "{app}\fedra.exe"; Description: "Launch Fedra"; Flags: nowait postinstall skipifsilent

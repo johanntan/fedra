@@ -12,6 +12,12 @@ pub(super) fn toggle_window_visibility(ctx: &mut UiCommandContext<'_>) {
 	let frame = ctx.frame;
 	let tray_hidden = ctx.tray_hidden;
 	app_shell::toggle_window_visibility(frame, tray_hidden);
+	// Saved right away rather than on exit, since a Windows shutdown can end the process before
+	// AppClosing runs, and that's the case where an autostarted Fedra needs to remember it.
+	if ctx.state.config.saved_window_hidden != tray_hidden.get() {
+		ctx.state.config.saved_window_hidden = tray_hidden.get();
+		let _ = config::ConfigStore::new().save(&ctx.state.config);
+	}
 }
 
 pub(super) fn set_quick_action_keys_enabled(ctx: &mut UiCommandContext<'_>, enabled: bool) {

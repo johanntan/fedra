@@ -77,6 +77,8 @@ pub struct Config {
 	pub saved_active_timeline: Option<crate::timeline::TimelineType>,
 	#[serde(default)]
 	pub saved_selected_post_id: Option<String>,
+	#[serde(default)]
+	pub saved_window_hidden: bool,
 }
 
 impl Config {
@@ -847,6 +849,7 @@ impl Default for Config {
 			saved_timelines: Vec::new(),
 			saved_active_timeline: None,
 			saved_selected_post_id: None,
+			saved_window_hidden: false,
 		}
 	}
 }
