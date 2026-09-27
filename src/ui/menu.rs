@@ -407,7 +407,8 @@ pub fn update_menu_labels(menu_bar: &MenuBar, state: &AppState) {
 				} else if !has_poll && vote_exists {
 					post_menu.delete(ID_VOTE);
 				} else if has_poll
-					&& vote_exists && let Some(vote_item) = post_menu.find_item(ID_VOTE)
+					&& vote_exists
+					&& let Some(vote_item) = post_menu.find_item(ID_VOTE)
 				{
 					vote_item.set_label(&vote_label);
 				}
