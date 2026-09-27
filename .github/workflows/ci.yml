@@ -36,17 +36,31 @@ jobs:
           components: clippy
       - name: Install CMake and Ninja
         run: choco install cmake ninja -y
-      # wxdragon-sys builds wxWidgets with CMake into target/<profile>/*_cmake_build,
-      # which rust-cache does not know about. Cache those too, otherwise a hit
-      # restores the build-script fingerprint without the libraries it produced
-      # and the link fails on a missing WebView2LoaderStatic.lib.
       - name: Cache Rust dependencies
         uses: Swatinem/rust-cache@v2
         with:
           cache-on-failure: true
-          cache-directories: |
+      # wxdragon-sys builds wxWidgets with CMake into target/debug/*_cmake_build.
+      # rust-cache wipes everything in target/debug except Cargo's own
+      # directories before saving, even paths passed as cache-directories, so
+      # these get their own cache. It has to come after rust-cache: post steps
+      # run in reverse, so this one saves before rust-cache's cleanup runs.
+      - name: Cache wxWidgets build
+        uses: actions/cache@v4
+        with:
+          path: |
             target/debug/wxwidgets_cmake_build
             target/debug/wxdragon_sys_cmake_build
+          key: wx-cmake-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
+      # If the Rust cache hit but the wxWidgets one didn't, the restored
+      # fingerprint says wxdragon-sys is built while its libraries are missing,
+      # and linking fails on WebView2LoaderStatic.lib. Force it to rebuild.
+      - name: Rebuild wxdragon-sys if its CMake output is missing
+        shell: pwsh
+        run: |
+          if (-not (Test-Path target/debug/wxwidgets_cmake_build/libs/webview/packages)) {
+            Remove-Item -Recurse -Force -ErrorAction SilentlyContinue target/debug/build/wxdragon-sys-*, target/debug/.fingerprint/wxdragon-sys-*
+          }
       # Clippy runs first so the dependency tree is built once, in the same
       # profile the tests then reuse. Checking in release meant compiling
       # everything a second time under LTO for no extra findings.
