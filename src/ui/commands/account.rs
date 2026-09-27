@@ -6,7 +6,7 @@ use wxdragon::prelude::*;
 use super::{UiCommand, UiCommandContext, handle_ui_command};
 use crate::{
 	accounts::{start_add_account_flow, switch_to_account, try_oob_oauth},
-	auth, config,
+	auth,
 	config::Account,
 	mastodon::MastodonClient,
 	network::NetworkCommand,
@@ -103,7 +103,7 @@ pub(super) fn remove_account(ctx: &mut UiCommandContext<'_>, id: String) {
 		}
 		switch_to_account(state, frame, timelines_selector, timeline_list, suppress_selection, true, next_id);
 	} else {
-		let _ = config::ConfigStore::new().save(&state.config);
+		let _ = state.save_config();
 	}
 }
 
@@ -155,7 +155,7 @@ pub(super) fn oauth_result(
 	if success {
 		let id = account.id.clone();
 		state.config.accounts.push(account);
-		let _ = config::ConfigStore::new().save(&state.config);
+		let _ = state.save_config();
 		handle_ui_command(UiCommand::SwitchAccount(id), ctx);
 	} else if state.config.accounts.is_empty() {
 		frame.close(true);

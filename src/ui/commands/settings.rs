@@ -3,7 +3,6 @@
 use super::{UiCommand, UiCommandContext};
 use crate::{
 	accounts::update_window_title,
-	config,
 	config::ContentWarningDisplay,
 	network::NetworkCommand,
 	ui::{dialogs, menu::update_menu_labels, timeline_view::update_active_timeline_ui},
@@ -121,8 +120,7 @@ pub(super) fn show_options(ctx: &mut UiCommandContext<'_>) {
 		if hotkey_changed && let Some(shell) = &state.app_shell {
 			shell.re_register_hotkey(ui_tx.clone(), &state.config.hotkey);
 		}
-		let store = config::ConfigStore::new();
-		if let Err(err) = store.save(&state.config) {
+		if let Err(err) = state.save_config() {
 			dialogs::show_error(frame, &err);
 		}
 		if needs_refresh {
@@ -152,8 +150,7 @@ pub(super) fn customize_shortcuts(ctx: &mut UiCommandContext<'_>) {
 	if let Some(new_shortcuts) = dialogs::prompt_for_shortcuts(frame, &state.config.shortcuts) {
 		state.config.shortcuts = new_shortcuts;
 		*shortcuts_cell.borrow_mut() = state.config.shortcuts.clone();
-		let store = config::ConfigStore::new();
-		if let Err(err) = store.save(&state.config) {
+		if let Err(err) = state.save_config() {
 			dialogs::show_error(frame, &err);
 		}
 		if let Some(mb) = frame.get_menu_bar() {

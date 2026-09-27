@@ -71,12 +71,15 @@ pub struct Config {
 	pub restore_open_timelines: bool,
 	#[serde(default)]
 	pub shortcuts: ShortcutsConfig,
-	#[serde(default)]
-	pub saved_timelines: Vec<crate::timeline::TimelineType>,
-	#[serde(default)]
-	pub saved_active_timeline: Option<crate::timeline::TimelineType>,
-	#[serde(default)]
-	pub saved_selected_post_id: Option<String>,
+	// Open timelines used to be saved once for the whole app rather than per
+	// account. These are only read so `ConfigStore::load` can move them onto
+	// the active account; they're never written back.
+	#[serde(default, rename = "saved_timelines", skip_serializing)]
+	legacy_saved_timelines: Vec<crate::timeline::TimelineType>,
+	#[serde(default, rename = "saved_active_timeline", skip_serializing)]
+	legacy_saved_active_timeline: Option<crate::timeline::TimelineType>,
+	#[serde(default, rename = "saved_selected_post_id", skip_serializing)]
+	legacy_saved_selected_post_id: Option<String>,
 	#[serde(default)]
 	pub saved_window_hidden: bool,
 }
@@ -817,6 +820,27 @@ const fn default_fetch_limit() -> u8 {
 	40
 }
 
+impl Config {
+	fn migrate_legacy_timelines(mut self) -> Self {
+		if self.legacy_saved_timelines.is_empty() {
+			return self;
+		}
+		let active_id = self.active_account_id.clone();
+		let account = match active_id {
+			Some(id) => self.accounts.iter_mut().find(|a| a.id == id),
+			None => self.accounts.first_mut(),
+		};
+		if let Some(account) = account
+			&& account.saved_timelines.is_empty()
+		{
+			account.saved_timelines = std::mem::take(&mut self.legacy_saved_timelines);
+			account.saved_active_timeline = self.legacy_saved_active_timeline.take();
+			account.saved_selected_post_id = self.legacy_saved_selected_post_id.take();
+		}
+		self
+	}
+}
+
 impl Default for Config {
 	fn default() -> Self {
 		Self {
@@ -846,9 +870,9 @@ impl Default for Config {
 			window_title_template: default_window_title_template(),
 			restore_open_timelines: default_restore_open_timelines(),
 			shortcuts: ShortcutsConfig::default(),
-			saved_timelines: Vec::new(),
-			saved_active_timeline: None,
-			saved_selected_post_id: None,
+			legacy_saved_timelines: Vec::new(),
+			legacy_saved_active_timeline: None,
+			legacy_saved_selected_post_id: None,
 			saved_window_hidden: false,
 		}
 	}
@@ -866,6 +890,12 @@ pub struct Account {
 	pub user_id: Option<String>,
 	#[serde(default)]
 	pub default_post_visibility: Option<String>,
+	#[serde(default)]
+	pub saved_timelines: Vec<crate::timeline::TimelineType>,
+	#[serde(default)]
+	pub saved_active_timeline: Option<crate::timeline::TimelineType>,
+	#[serde(default)]
+	pub saved_selected_post_id: Option<String>,
 }
 
 impl Account {
@@ -880,6 +910,9 @@ impl Account {
 			display_name: None,
 			user_id: None,
 			default_post_visibility: None,
+			saved_timelines: Vec::new(),
+			saved_active_timeline: None,
+			saved_selected_post_id: None,
 		}
 	}
 
@@ -902,7 +935,9 @@ impl ConfigStore {
 
 	pub fn load(&self) -> Config {
 		match fs::read_to_string(&self.path) {
-			Ok(contents) => serde_json::from_str(&contents).unwrap_or_default(),
+			Ok(contents) => {
+				serde_json::from_str::<Config>(&contents).map(Config::migrate_legacy_timelines).unwrap_or_default()
+			}
 			Err(err) if err.kind() == io::ErrorKind::NotFound => Config::default(),
 			Err(_) => Config::default(),
 		}

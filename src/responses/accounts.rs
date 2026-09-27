@@ -4,7 +4,6 @@ use wxdragon::prelude::*;
 use super::NetworkResponseContext;
 use crate::{
 	AppState, UiCommand,
-	config::ConfigStore,
 	mastodon::{Account, Relationship},
 	network::{NetworkCommand, RelationshipAction},
 	timeline::TimelineType,
@@ -304,6 +303,6 @@ pub(super) fn profile_updated(ctx: &mut NetworkResponseContext<'_>, account: Acc
 	if let Some(active) = ctx.state.active_account_mut() {
 		active.default_post_visibility = account.source.and_then(|s| s.privacy);
 	}
-	let _ = ConfigStore::new().save(&ctx.state.config);
+	let _ = ctx.state.save_config();
 	let _ = ctx.ui_tx.send(UiCommand::Refresh);
 }

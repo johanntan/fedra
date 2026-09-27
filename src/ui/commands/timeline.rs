@@ -109,6 +109,7 @@ pub(super) fn open_timeline(
 	selector.append(&timeline_type.display_name());
 	let new_index = state.timeline_manager.len() - 1;
 	state.timeline_manager.set_active(new_index);
+	let _ = state.save_config();
 	update_window_title(state, frame);
 	with_suppressed_selection(suppress_selection, || {
 		selector.set_selection(u32::try_from(new_index).unwrap(), true);
@@ -152,6 +153,7 @@ pub(super) fn close_timeline(
 	if !state.timeline_manager.close(&active_type, use_history) {
 		return;
 	}
+	let _ = state.save_config();
 	let active_index = state.timeline_manager.active_index();
 	let active_name = state.timeline_manager.display_names().get(active_index).cloned();
 	if let Some(name) = &active_name {
@@ -383,6 +385,7 @@ pub(super) fn move_timeline_left(ctx: &mut UiCommandContext<'_>) {
 	let suppress_selection = ctx.suppress_selection;
 	let live_region = ctx.live_region;
 	if let Some(new_index) = state.timeline_manager.move_active_left() {
+		let _ = state.save_config();
 		timelines_selector.clear();
 		let display_names = state.timeline_manager.display_names();
 		for name in &display_names {
@@ -414,6 +417,7 @@ pub(super) fn move_timeline_right(ctx: &mut UiCommandContext<'_>) {
 	let suppress_selection = ctx.suppress_selection;
 	let live_region = ctx.live_region;
 	if let Some(new_index) = state.timeline_manager.move_active_right() {
+		let _ = state.save_config();
 		timelines_selector.clear();
 		let display_names = state.timeline_manager.display_names();
 		for name in &display_names {

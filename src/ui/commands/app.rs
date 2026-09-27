@@ -3,10 +3,7 @@
 use wxdragon::prelude::*;
 
 use super::UiCommandContext;
-use crate::{
-	config,
-	ui::{app_shell, dialogs, menu::update_menu_labels},
-};
+use crate::ui::{app_shell, dialogs, menu::update_menu_labels};
 
 pub(super) fn toggle_window_visibility(ctx: &mut UiCommandContext<'_>) {
 	let frame = ctx.frame;
@@ -16,7 +13,7 @@ pub(super) fn toggle_window_visibility(ctx: &mut UiCommandContext<'_>) {
 	// AppClosing runs, and that's the case where an autostarted Fedra needs to remember it.
 	if ctx.state.config.saved_window_hidden != tray_hidden.get() {
 		ctx.state.config.saved_window_hidden = tray_hidden.get();
-		let _ = config::ConfigStore::new().save(&ctx.state.config);
+		let _ = ctx.state.save_config();
 	}
 }
 
@@ -27,7 +24,7 @@ pub(super) fn set_quick_action_keys_enabled(ctx: &mut UiCommandContext<'_>, enab
 	let quick_action_keys_enabled = ctx.quick_action_keys_enabled;
 	state.config.quick_action_keys = enabled;
 	quick_action_keys_enabled.set(enabled);
-	let _ = config::ConfigStore::new().save(&state.config);
+	let _ = state.save_config();
 	let msg = if enabled { "Quick keys enabled" } else { "Quick keys disabled" };
 	live_region.announce(msg);
 	if let Some(mb) = frame.get_menu_bar() {
@@ -62,11 +59,7 @@ pub(super) fn check_for_updates(ctx: &mut UiCommandContext<'_>) {
 }
 
 pub(super) fn app_closing(ctx: &mut UiCommandContext<'_>) {
-	let state = &mut *ctx.state;
-	state.config.saved_timelines = state.timeline_manager.open_timeline_types();
-	state.config.saved_active_timeline = state.timeline_manager.active().map(|t| t.timeline_type.clone());
-	state.config.saved_selected_post_id = state.timeline_manager.active().and_then(|t| t.selected_id.clone());
-	let _ = config::ConfigStore::new().save(&state.config);
+	let _ = ctx.state.save_config();
 	ctx.frame.destroy();
 }
 

@@ -171,6 +171,31 @@ impl AppState {
 		}
 	}
 
+	/// Copies each account's open timelines into the config, then writes it.
+	///
+	/// Every config save goes through here so the open timelines on disk are
+	/// never stale: they used to be written only on a clean exit, so a crash
+	/// or an update lost them, and any other save in between wrote out an
+	/// empty list.
+	pub(crate) fn save_config(&mut self) -> anyhow::Result<()> {
+		let active_id = self.active_account().map(|a| a.id.clone());
+		for account in &mut self.config.accounts {
+			let manager = if active_id.as_ref() == Some(&account.id) {
+				Some(&self.timeline_manager)
+			} else {
+				self.account_timelines.get(&account.id)
+			};
+			// An empty manager means this account's timelines haven't been
+			// loaded yet (mid account switch, or during startup), not that
+			// the user closed them all, which isn't possible.
+			let Some(manager) = manager.filter(|m| m.len() > 0) else { continue };
+			account.saved_timelines = manager.open_timeline_types();
+			account.saved_active_timeline = manager.active().map(|t| t.timeline_type.clone());
+			account.saved_selected_post_id = manager.active().and_then(|t| t.selected_id.clone());
+		}
+		config::ConfigStore::new().save(&self.config)
+	}
+
 	pub(crate) fn timeline_view_options_for(&self, timeline_type: &timeline::TimelineType) -> TimelineViewOptions {
 		TimelineViewOptions::from_config(&self.config, timeline_type)
 	}

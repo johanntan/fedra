@@ -5,7 +5,7 @@ use wxdragon::prelude::*;
 
 use crate::{
 	AppState, UiCommand, auth,
-	config::{Account, ConfigStore},
+	config::Account,
 	mastodon::MastodonClient,
 	network::{self, NetworkCommand},
 	streaming,
@@ -117,7 +117,7 @@ pub fn switch_to_account(
 			state.account_cw_expanded.insert(old_id, std::mem::take(&mut state.cw_expanded));
 		}
 		state.config.active_account_id = Some(new_id);
-		let _ = ConfigStore::new().save(&state.config);
+		let _ = state.save_config();
 	}
 	state.network_handle = None;
 	let active_id =
@@ -164,18 +164,24 @@ pub fn switch_to_account(
 				active.user_id = Some(account.id.clone());
 				active.default_post_visibility = account.source.and_then(|s| s.privacy);
 				state.current_user_id = Some(account.id);
-				let _ = ConfigStore::new().save(&state.config);
+				let _ = state.save_config();
 			}
 		} else if let Some(active) = state.active_account() {
 			state.current_user_id = active.user_id.clone();
 		}
 	}
-	if state.timeline_manager.len() == 0 {
+	// Only restore the saved timelines the first time an account is shown this
+	// session. Switching back to it later keeps whatever was left open.
+	let first_load = state.timeline_manager.len() == 0;
+	let (saved_timelines, saved_active_timeline, saved_selected_post_id) = state
+		.active_account()
+		.map(|a| (a.saved_timelines.clone(), a.saved_active_timeline.clone(), a.saved_selected_post_id.clone()))
+		.unwrap_or_default();
+	if first_load {
 		let mut loaded_saved = false;
 		let default_timelines = state.config.default_timelines.clone();
-		if !state.config.saved_timelines.is_empty() {
-			let saved = std::mem::take(&mut state.config.saved_timelines);
-			for t in saved {
+		if !saved_timelines.is_empty() {
+			for t in saved_timelines {
 				if !state.config.restore_open_timelines {
 					let is_default = if t == TimelineType::Home || t == TimelineType::Notifications {
 						true
@@ -266,17 +272,15 @@ pub fn switch_to_account(
 	for tt in timeline_types {
 		start_streaming_for_timeline(state, &tt);
 	}
-	if let Some(saved_type) = state.config.saved_active_timeline.take() {
+	if first_load && let Some(saved_type) = saved_active_timeline {
 		if let Some(index) = state.timeline_manager.index_of(&saved_type) {
 			state.timeline_manager.set_active(index);
 		}
-		if let Some(post_id) = state.config.saved_selected_post_id.take()
+		if let Some(post_id) = saved_selected_post_id
 			&& let Some(active_type) = state.timeline_manager.active().map(|t| t.timeline_type.clone())
 		{
 			state.pending_restore_post_id = Some((active_type, post_id));
 		}
-	} else {
-		state.config.saved_selected_post_id = None;
 	}
 	timelines_selector.clear();
 	for name in state.timeline_manager.display_names() {
