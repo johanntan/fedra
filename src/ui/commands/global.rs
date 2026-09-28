@@ -1,44 +1,41 @@
 //! System-wide shortcuts: using Fedra without its window, from anywhere.
 //!
-//! Most global actions are ordinary commands under another key. Moving through posts is the
-//! exception: it drives the timeline list the same way its arrow keys do, and speaks where it
+//! Most global actions are ordinary commands under another key. Moving through posts and
+//! timelines is the exception: it drives the same list the window does, and speaks where it
 //! lands whenever a screen reader wouldn't already be reading the list.
 
-use super::{UiCommandContext, handle_ui_command};
+use super::{UiCommandContext, command_for, handle_ui_command};
 use crate::{
 	UiCommand,
-	config::GlobalAction,
-	ui::{app_shell, keys},
+	config::{ActionId, GlobalAction},
+	ui::{app_shell, dialogs, keys},
 };
 
 pub(super) fn run(ctx: &mut UiCommandContext<'_>, action: GlobalAction) {
-	let command = match action {
-		GlobalAction::ToggleWindow => {
-			app_shell::toggle_window_visibility(ctx.frame, ctx.tray_hidden);
-			return;
-		}
-		GlobalAction::PreviousPost => return step(ctx, keys::UP),
-		GlobalAction::NextPost => return step(ctx, keys::DOWN),
-		GlobalAction::FirstPost => return step(ctx, keys::HOME),
-		GlobalAction::LastPost => return step(ctx, keys::END),
+	match action {
+		GlobalAction::ToggleWindow => app_shell::toggle_window_visibility(ctx.frame, ctx.tray_hidden),
+		GlobalAction::PreviousPost => step(ctx, keys::UP),
+		GlobalAction::NextPost => step(ctx, keys::DOWN),
+		GlobalAction::FirstPost => step(ctx, keys::HOME),
+		GlobalAction::LastPost => step(ctx, keys::END),
 		GlobalAction::ReadPost => {
 			let text = ctx.timeline_list.selected_text().unwrap_or_else(|| "No post selected".to_string());
 			ctx.live_region.announce(&text);
-			return;
 		}
-		GlobalAction::PreviousTimeline => UiCommand::SwitchPrevTimeline,
-		GlobalAction::NextTimeline => UiCommand::SwitchNextTimeline,
-		GlobalAction::LoadMore => UiCommand::LoadMore,
-		GlobalAction::NewPost => UiCommand::NewPost,
-		GlobalAction::Reply => UiCommand::Reply { reply_all: true },
-		GlobalAction::Favorite => UiCommand::Favorite,
-		GlobalAction::Boost => UiCommand::Boost,
-		GlobalAction::ViewPost => UiCommand::ViewPost,
-		GlobalAction::OpenLinks => UiCommand::OpenLinks,
-		GlobalAction::ViewInBrowser => UiCommand::ViewInBrowser,
-		GlobalAction::PlayMedia => UiCommand::PlayMedia,
-	};
-	handle_ui_command(command, ctx);
+		GlobalAction::PreviousTimeline => switch_timeline(ctx, false),
+		GlobalAction::NextTimeline => switch_timeline(ctx, true),
+		GlobalAction::Exit => handle_ui_command(UiCommand::ExitApp, ctx),
+		GlobalAction::Action(ActionId::Find) => {
+			if let Some(query) = dialogs::show_find_dialog(ctx.frame) {
+				handle_ui_command(UiCommand::Find(query), ctx);
+			}
+		}
+		GlobalAction::Action(action) => {
+			if let Some(command) = command_for(action) {
+				handle_ui_command(command, ctx);
+			}
+		}
+	}
 }
 
 /// Moves through the active timeline as `key` would in the list, and reads the post it lands on.
@@ -60,4 +57,24 @@ fn step(ctx: &UiCommandContext<'_>, key: i32) {
 	if let Some(text) = list.selected_text() {
 		ctx.live_region.announce(&text);
 	}
+}
+
+/// Switches to the next or previous timeline, and reads its name with the post it lands on in one
+/// announcement, since a second one would cut the first off.
+fn switch_timeline(ctx: &mut UiCommandContext<'_>, forward: bool) {
+	let count = ctx.state.timeline_manager.len();
+	if count == 0 {
+		return;
+	}
+	let current = ctx.state.timeline_manager.active_index();
+	let index = if forward { (current + 1) % count } else { (current + count - 1) % count };
+	if index != current {
+		handle_ui_command(UiCommand::TimelineSelectionChanged(index), ctx);
+	}
+	let name = ctx.state.timeline_manager.display_names().get(index).cloned().unwrap_or_default();
+	let text = match ctx.timeline_list.selected_text() {
+		Some(post) => format!("{name}. {post}"),
+		None => name,
+	};
+	ctx.live_region.announce(&text);
 }

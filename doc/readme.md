@@ -240,9 +240,9 @@ These are built into the lists and cannot be customized:
 - `Shift+F10` or the applications key: Open the actions menu for the focused post, or for the focused user in the followers/following dialogs
 
 ### Global shortcuts
-Global shortcuts work from any program, whether Fedra's window is shown, hidden, or behind other windows. Moving through posts reads each one aloud, through your screen reader when one is running. You can change or clear any of them on the **Global** tab of Customize Keyboard Shortcuts, and turn them all off in Options, except show and hide.
+Global shortcuts work from any program, whether Fedra's window is shown, hidden, or behind other windows. Moving through posts reads each one aloud, through your screen reader when one is running, and switching timelines reads the timeline's name and the post you land on. Almost every action from the Normal and Quick Action Keys tabs is available as a global shortcut too. You can change, clear, or add any of them on the **Global** tab of Customize Keyboard Shortcuts, and turn them all off in Options, except show and hide.
 
-The defaults follow TWBlue's Windows 11 keymap:
+The defaults follow TWBlue's Windows 11 keymap. Actions not listed here start with no global shortcut.
 
 | Action | Default |
 |---|---|
@@ -254,15 +254,34 @@ The defaults follow TWBlue's Windows 11 keymap:
 | Read current post | `Ctrl+Alt+Win+Space` |
 | Previous timeline | `Ctrl+Alt+Win+Left` |
 | Next timeline | `Ctrl+Alt+Win+Right` |
-| Load more posts | `Alt+Win+Page Up` |
+| Previous account | `Ctrl+Alt+Shift+Win+Left` |
+| Next account | `Ctrl+Alt+Shift+Win+Right` |
 | New post | `Alt+Win+N` |
 | Reply | `Ctrl+Win+R` |
-| Favorite | `Ctrl+Alt+Win+F` |
 | Boost | `Alt+Shift+Win+R` |
+| Favorite | `Ctrl+Alt+Win+F` |
+| Delete post | `Alt+Win+Delete` |
+| Copy post | `Alt+Shift+Win+C` |
 | View post | `Alt+Win+V` |
+| View thread | `Alt+Win+C` |
+| View profile | `Alt+Shift+Win+N` |
+| Follow or unfollow | `Alt+Shift+Win+S` |
+| Open user timeline | `Alt+Win+I` |
+| Close timeline | `Alt+Shift+Win+I` |
 | Open links | `Alt+Win+Enter` |
 | Open in browser | `Ctrl+Alt+Win+Enter` |
 | Play media | `Alt+Shift+Win+Enter` |
+| Vote | `Alt+Shift+Win+V` |
+| Search | `Alt+Win+-` |
+| Load more posts | `Alt+Win+Page Up` |
+| Refresh | `Ctrl+Alt+Shift+U` |
+| Open list | `Alt+Win+L` |
+| Manage lists | `Alt+Shift+Win+L` |
+| Edit profile | `Alt+Win+P` |
+| Options | `Ctrl+Alt+Win+O` |
+| Customize keyboard shortcuts | `Ctrl+Alt+Win+K` |
+| Check for updates | `Alt+Win+U` |
+| Exit | `Alt+Win+F4` |
 
 If another program already uses one of these, Fedra says so when it starts, and that shortcut does nothing until you change it.
 

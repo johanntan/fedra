@@ -52,7 +52,7 @@ impl ShortcutModel for ModeShortcutsModel {
 
 	fn actions(&self, tab: usize) -> Vec<Action> {
 		if tab == GLOBAL_TAB {
-			GlobalAction::all().iter().map(|&action| Action::Global(action)).collect()
+			GlobalAction::all().into_iter().map(Action::Global).collect()
 		} else {
 			ActionId::all().iter().map(|&action| Action::Local(action)).collect()
 		}

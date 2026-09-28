@@ -16,7 +16,7 @@ use crate::{
 	ID_VIEW_HASHTAGS, ID_VIEW_HELP, ID_VIEW_IN_BROWSER, ID_VIEW_MENTIONS, ID_VIEW_POST, ID_VIEW_PROFILE,
 	ID_VIEW_QUOTED_THREAD, ID_VIEW_THREAD, ID_VIEW_USER_TIMELINE, ID_VOTE, UiCommand,
 	config::{ActionId, AutoloadMode, ShortcutsConfig, SortOrder},
-	ui::{dialogs, keys, menu::build_menu_bar},
+	ui::{commands::command_for, dialogs, keys, menu::build_menu_bar},
 	ui_wake::UiCommandSender,
 };
 
@@ -218,193 +218,20 @@ pub fn bind_input_handlers(
 			}
 			if let Some(action) = shortcuts_list_key.borrow().find_action(quick_mode, k, ctrl, alt, shift) {
 				match action {
-					ActionId::NewPost => {
-						let _ = ui_tx_list_key.send(UiCommand::NewPost);
-					}
-					ActionId::Reply => {
-						let _ = ui_tx_list_key.send(UiCommand::Reply { reply_all: true });
-					}
-					ActionId::ReplyAuthor => {
-						let _ = ui_tx_list_key.send(UiCommand::Reply { reply_all: false });
-					}
-					ActionId::Quote => {
-						let _ = ui_tx_list_key.send(UiCommand::Quote);
-					}
-					ActionId::ToggleFollow => {
-						let _ = ui_tx_list_key.send(UiCommand::ToggleFollow);
-					}
-					ActionId::ViewProfile => {
-						let _ = ui_tx_list_key.send(UiCommand::ViewProfile);
-					}
-					ActionId::ViewMentions => {
-						let _ = ui_tx_list_key.send(UiCommand::ViewMentions);
-					}
-					ActionId::ViewHashtags => {
-						let _ = ui_tx_list_key.send(UiCommand::ViewHashtags);
-					}
-					ActionId::OpenLinks => {
-						let _ = ui_tx_list_key.send(UiCommand::OpenLinks);
-					}
-					ActionId::PlayMedia => {
-						let _ = ui_tx_list_key.send(UiCommand::PlayMedia);
-					}
-					ActionId::ViewInBrowser => {
-						let _ = ui_tx_list_key.send(UiCommand::ViewInBrowser);
-					}
-					ActionId::CopyPost => {
-						let _ = ui_tx_list_key.send(UiCommand::CopyPost);
-					}
-					ActionId::CopyPostLink => {
-						let _ = ui_tx_list_key.send(UiCommand::CopyPostLink);
-					}
-					ActionId::ViewPost => {
-						let _ = ui_tx_list_key.send(UiCommand::ViewPost);
-					}
-					ActionId::ViewThread => {
-						let _ = ui_tx_list_key.send(UiCommand::ViewThread);
-					}
-					ActionId::ViewQuotedThread => {
-						let _ = ui_tx_list_key.send(UiCommand::ViewQuotedThread);
-					}
-					ActionId::EditPost => {
-						let _ = ui_tx_list_key.send(UiCommand::EditPost);
-					}
-					ActionId::DeletePost => {
-						let _ = ui_tx_list_key.send(UiCommand::DeletePost);
-					}
-					ActionId::PinPost => {
-						let _ = ui_tx_list_key.send(UiCommand::Pin);
-					}
-					ActionId::Vote => {
-						let _ = ui_tx_list_key.send(UiCommand::Vote);
-					}
-					ActionId::Favorite => {
-						let _ = ui_tx_list_key.send(UiCommand::Favorite);
-					}
-					ActionId::Bookmark => {
-						let _ = ui_tx_list_key.send(UiCommand::Bookmark);
-					}
-					ActionId::Boost => {
-						let _ = ui_tx_list_key.send(UiCommand::Boost);
-					}
-					ActionId::ViewBoosts => {
-						let _ = ui_tx_list_key.send(UiCommand::ViewBoosts);
-					}
-					ActionId::ViewFavorites => {
-						let _ = ui_tx_list_key.send(UiCommand::ViewFavorites);
-					}
-					ActionId::OpenUserTimeline => {
-						let _ = ui_tx_list_key.send(UiCommand::OpenUserTimeline);
-					}
-					ActionId::OpenUserTimelineByInput => {
-						let _ = ui_tx_list_key.send(UiCommand::OpenUserTimelineByInput);
-					}
-					ActionId::Search => {
-						let _ = ui_tx_list_key.send(UiCommand::Search);
-					}
 					ActionId::Find => {
 						if let Some(query) = dialogs::show_find_dialog(&find_frame) {
 							let _ = ui_tx_list_key.send(UiCommand::Find(query));
 						}
-					}
-					ActionId::FindNext => {
-						let _ = ui_tx_list_key.send(UiCommand::FindNext);
-					}
-					ActionId::FindPrev => {
-						let _ = ui_tx_list_key.send(UiCommand::FindPrev);
-					}
-					ActionId::HomeTimeline => {
-						let _ = ui_tx_list_key.send(UiCommand::OpenTimeline(crate::timeline::TimelineType::Home));
-					}
-					ActionId::NotificationsTimeline => {
-						let _ =
-							ui_tx_list_key.send(UiCommand::OpenTimeline(crate::timeline::TimelineType::Notifications));
-					}
-					ActionId::SentTimeline => {
-						let _ = ui_tx_list_key.send(UiCommand::SentTimeline);
-					}
-					ActionId::LocalTimeline => {
-						let _ = ui_tx_list_key.send(UiCommand::OpenTimeline(crate::timeline::TimelineType::Local));
-					}
-					ActionId::OpenInstanceTimelineByInput => {
-						let _ = ui_tx_list_key.send(UiCommand::OpenInstanceTimelineByInput);
-					}
-					ActionId::FederatedTimeline => {
-						let _ = ui_tx_list_key.send(UiCommand::OpenTimeline(crate::timeline::TimelineType::Federated));
-					}
-					ActionId::DirectTimeline => {
-						let _ = ui_tx_list_key.send(UiCommand::OpenTimeline(crate::timeline::TimelineType::Direct));
-					}
-					ActionId::MentionsTimeline => {
-						let _ = ui_tx_list_key.send(UiCommand::OpenTimeline(crate::timeline::TimelineType::Mentions));
-					}
-					ActionId::BookmarksTimeline => {
-						let _ = ui_tx_list_key.send(UiCommand::OpenTimeline(crate::timeline::TimelineType::Bookmarks));
-					}
-					ActionId::FavoritesTimeline => {
-						let _ = ui_tx_list_key.send(UiCommand::OpenTimeline(crate::timeline::TimelineType::Favorites));
-					}
-					ActionId::OpenList => {
-						let _ = ui_tx_list_key.send(UiCommand::OpenList);
-					}
-					ActionId::LoadMore => {
-						let _ = ui_tx_list_key.send(UiCommand::LoadMore);
-					}
-					ActionId::CloseTimeline => {
-						let _ = ui_tx_list_key.send(UiCommand::CloseTimeline);
-					}
-					ActionId::Refresh => {
-						let _ = ui_tx_list_key.send(UiCommand::Refresh);
-					}
-					ActionId::SwitchPrevTimeline => {
-						let _ = ui_tx_list_key.send(UiCommand::SwitchPrevTimeline);
-					}
-					ActionId::SwitchNextTimeline => {
-						let _ = ui_tx_list_key.send(UiCommand::SwitchNextTimeline);
-					}
-					ActionId::MoveTimelineLeft => {
-						let _ = ui_tx_list_key.send(UiCommand::MoveTimelineLeft);
-					}
-					ActionId::MoveTimelineRight => {
-						let _ = ui_tx_list_key.send(UiCommand::MoveTimelineRight);
-					}
-					ActionId::SwitchPrevAccount => {
-						let _ = ui_tx_list_key.send(UiCommand::SwitchPrevAccount);
-					}
-					ActionId::SwitchNextAccount => {
-						let _ = ui_tx_list_key.send(UiCommand::SwitchNextAccount);
-					}
-					ActionId::ToggleContentWarning => {
-						let _ = ui_tx_list_key.send(UiCommand::ToggleContentWarning);
 					}
 					ActionId::ToggleQuickActionKeys => {
 						let new_value = !quick_action_keys_list.get();
 						quick_action_keys_list.set(new_value);
 						let _ = ui_tx_list_key.send(UiCommand::SetQuickActionKeysEnabled(new_value));
 					}
-					ActionId::ManageAccounts => {
-						let _ = ui_tx_list_key.send(UiCommand::ManageAccounts);
-					}
-					ActionId::ManageFilters => {
-						let _ = ui_tx_list_key.send(UiCommand::ManageFilters);
-					}
-					ActionId::ManageLists => {
-						let _ = ui_tx_list_key.send(UiCommand::ManageLists);
-					}
-					ActionId::EditProfile => {
-						let _ = ui_tx_list_key.send(UiCommand::EditProfile);
-					}
-					ActionId::Options => {
-						let _ = ui_tx_list_key.send(UiCommand::ShowOptions);
-					}
-					ActionId::CustomizeShortcuts => {
-						let _ = ui_tx_list_key.send(UiCommand::CustomizeShortcuts);
-					}
-					ActionId::CheckForUpdates => {
-						let _ = ui_tx_list_key.send(UiCommand::CheckForUpdates);
-					}
-					ActionId::ViewHelp => {
-						let _ = ui_tx_list_key.send(UiCommand::ViewHelp);
+					action => {
+						if let Some(command) = command_for(action) {
+							let _ = ui_tx_list_key.send(command);
+						}
 					}
 				}
 				event.skip(false);

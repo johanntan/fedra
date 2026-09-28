@@ -32,9 +32,9 @@ impl AppShell {
 		// A chord this process still holds can't be registered a second time.
 		*self.hotkeys.borrow_mut() = None;
 		let bindings: Vec<_> = GlobalAction::all()
-			.iter()
-			.filter(|&&action| global_keys || action == GlobalAction::ToggleWindow)
-			.filter_map(|&action| shortcuts.get_chord(action).map(|chord| (chord, action)))
+			.into_iter()
+			.filter(|&action| global_keys || action == GlobalAction::ToggleWindow)
+			.filter_map(|action| shortcuts.get_chord(action).map(|chord| (chord, action)))
 			.collect();
 		if bindings.is_empty() {
 			return Vec::new();
