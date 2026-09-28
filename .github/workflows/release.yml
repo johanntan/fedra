@@ -37,7 +37,24 @@ jobs:
     - name: Install CMake, Ninja, and Pandoc
       run: |
         choco install cmake ninja pandoc minisign -y
+    # Fedra builds against wxWidgets master for fixes that aren't in a release yet.
+    # The clone is cached per master commit, so a new commit is picked up on the next run.
+    - name: Find wxWidgets master
+      id: wxwidgets
+      shell: bash
+      run: echo "sha=$(git ls-remote https://github.com/wxWidgets/wxWidgets.git HEAD | cut -f1)" >> "$GITHUB_OUTPUT"
+    - name: Cache wxWidgets source
+      id: wxwidgets-cache
+      uses: actions/cache@v4
+      with:
+        path: wxWidgets
+        key: wxwidgets-src-${{ steps.wxwidgets.outputs.sha }}
+    - name: Clone wxWidgets master
+      if: steps.wxwidgets-cache.outputs.cache-hit != 'true'
+      run: git clone --depth 1 --recurse-submodules --shallow-submodules https://github.com/wxWidgets/wxWidgets.git
     - name: Build
+      env:
+        WXWIDGETS_DIR: ${{ github.workspace }}/wxWidgets
       run: |
         cargo release
     - name: Sign artifacts

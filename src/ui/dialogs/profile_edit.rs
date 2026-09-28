@@ -18,7 +18,6 @@ pub fn show_profile_edit_dialog(
 	let content_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	let name_label = StaticText::builder(&scroll_win).with_label("Display Name").build();
 	let name_text = TextCtrl::builder(&scroll_win).with_value(current.display_name_or_username()).build();
-	name_text.set_name("Display Name");
 	content_sizer.add(&name_label, 0, SizerFlag::All, 5);
 	content_sizer.add(&name_text, 0, SizerFlag::Expand | SizerFlag::Left | SizerFlag::Right, 5);
 	let note_label = StaticText::builder(&scroll_win).with_label("Bio").build();
@@ -27,14 +26,12 @@ pub fn show_profile_edit_dialog(
 		.with_style(TextCtrlStyle::MultiLine)
 		.with_size(Size::new(-1, 100))
 		.build();
-	note_text.set_name("Bio");
 	content_sizer.add(&note_label, 0, SizerFlag::All, 5);
 	content_sizer.add(&note_text, 0, SizerFlag::Expand | SizerFlag::Left | SizerFlag::Right, 5);
 	let images_sizer = BoxSizer::builder(Orientation::Horizontal).build();
 	let avatar_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	let avatar_label = StaticText::builder(&scroll_win).with_label("Avatar:").build();
 	let avatar_path = TextCtrl::builder(&scroll_win).with_style(TextCtrlStyle::ReadOnly).build();
-	avatar_path.set_name("Avatar Path");
 	let avatar_btn = Button::builder(&scroll_win).with_label("Change Avatar...").build();
 	avatar_sizer.add(&avatar_label, 0, SizerFlag::All, 5);
 	avatar_sizer.add(&avatar_path, 0, SizerFlag::Expand | SizerFlag::All, 5);
@@ -42,7 +39,6 @@ pub fn show_profile_edit_dialog(
 	let header_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	let header_label = StaticText::builder(&scroll_win).with_label("Header:").build();
 	let header_path = TextCtrl::builder(&scroll_win).with_style(TextCtrlStyle::ReadOnly).build();
-	header_path.set_name("Header Path");
 	let header_btn = Button::builder(&scroll_win).with_label("Change Header...").build();
 	header_sizer.add(&header_label, 0, SizerFlag::All, 5);
 	header_sizer.add(&header_path, 0, SizerFlag::Expand | SizerFlag::All, 5);
@@ -77,13 +73,11 @@ pub fn show_profile_edit_dialog(
 		let field_sizer = BoxSizer::builder(Orientation::Vertical).build();
 		let title_text = StaticText::builder(&scroll_win).with_label(&title_lbl).build();
 		let name_ctrl = TextCtrl::builder(&scroll_win).with_value(&name_val).build();
-		name_ctrl.set_name(&title_lbl);
 		field_sizer.add(&title_text, 0, SizerFlag::All, 2);
 		field_sizer.add(&name_ctrl, 0, SizerFlag::Expand | SizerFlag::All, 2);
 		let content_sizer_inner = BoxSizer::builder(Orientation::Vertical).build();
 		let content_text = StaticText::builder(&scroll_win).with_label(&content_lbl).build();
 		let val_ctrl = TextCtrl::builder(&scroll_win).with_value(&val_val).build();
-		val_ctrl.set_name(&content_lbl);
 		content_sizer_inner.add(&content_text, 0, SizerFlag::All, 2);
 		content_sizer_inner.add(&val_ctrl, 0, SizerFlag::Expand | SizerFlag::All, 2);
 		row_sizer.add_sizer(&field_sizer, 1, SizerFlag::Expand, 0);
