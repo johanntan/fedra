@@ -250,6 +250,7 @@ pub enum ActionId {
 	OpenList,
 	LoadMore,
 	CloseTimeline,
+	ToggleTimelineLock,
 	Refresh,
 	SwitchPrevTimeline,
 	SwitchNextTimeline,
@@ -316,6 +317,7 @@ impl ActionId {
 			Self::OpenList,
 			Self::LoadMore,
 			Self::CloseTimeline,
+			Self::ToggleTimelineLock,
 			Self::Refresh,
 			Self::SwitchPrevTimeline,
 			Self::SwitchNextTimeline,
@@ -382,6 +384,7 @@ impl ActionId {
 			Self::OpenList => "Open List...",
 			Self::LoadMore => "Load More",
 			Self::CloseTimeline => "Close Timeline",
+			Self::ToggleTimelineLock => "Lock or Unlock Timeline",
 			Self::Refresh => "Refresh",
 			Self::SwitchPrevTimeline => "Previous Timeline",
 			Self::SwitchNextTimeline => "Next Timeline",
@@ -450,6 +453,7 @@ impl ActionId {
 				Self::OpenList => None,
 				Self::LoadMore => Some(KeyChord::new(false, false, false, ".")),
 				Self::CloseTimeline => Some(KeyChord::new(false, false, false, "Backspace")),
+				Self::ToggleTimelineLock => Some(KeyChord::new(true, false, false, "P")),
 				Self::Refresh => Some(KeyChord::new(false, false, false, "F5")),
 				Self::SwitchPrevTimeline => Some(KeyChord::new(false, false, false, "Left")),
 				Self::SwitchNextTimeline => Some(KeyChord::new(false, false, false, "Right")),
@@ -514,6 +518,7 @@ impl ActionId {
 				Self::OpenList => None,
 				Self::LoadMore => Some(KeyChord::new(false, false, false, ".")),
 				Self::CloseTimeline => Some(KeyChord::new(true, false, false, "W")),
+				Self::ToggleTimelineLock => Some(KeyChord::new(true, false, true, "P")),
 				Self::Refresh => Some(KeyChord::new(false, false, false, "F5")),
 				Self::SwitchPrevTimeline => Some(KeyChord::new(false, false, false, "Left")),
 				Self::SwitchNextTimeline => Some(KeyChord::new(false, false, false, "Right")),
@@ -1072,6 +1077,8 @@ pub struct Account {
 	pub saved_active_timeline: Option<crate::timeline::TimelineType>,
 	#[serde(default)]
 	pub saved_selected_post_id: Option<String>,
+	#[serde(default)]
+	pub locked_timelines: Vec<crate::timeline::TimelineType>,
 }
 
 impl Account {
@@ -1089,6 +1096,7 @@ impl Account {
 			saved_timelines: Vec::new(),
 			saved_active_timeline: None,
 			saved_selected_post_id: None,
+			locked_timelines: Vec::new(),
 		}
 	}
 

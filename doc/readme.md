@@ -344,6 +344,7 @@ If another program already uses one of these, Fedra says so when it starts, and 
 | Open List... | None | None |
 | Load More | `.` | `.` |
 | Close Timeline | `Ctrl+W` | `Backspace` |
+| Lock or Unlock Timeline | `Ctrl+Shift+P` | `Ctrl+P` |
 | Refresh | `F5` | `F5` |
 | Previous Timeline | `Left` | `Left` |
 | Next Timeline | `Right` | `Right` |

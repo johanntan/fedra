@@ -150,6 +150,10 @@ pub(super) fn close_timeline(
 		live_region.announce("Cannot close the only open timeline");
 		return;
 	}
+	if state.active_account().is_some_and(|account| account.locked_timelines.contains(&active_type)) {
+		live_region.announce("This timeline is locked");
+		return;
+	}
 	if !state.timeline_manager.close(&active_type, use_history) {
 		return;
 	}
@@ -229,6 +233,25 @@ pub(super) fn close(ctx: &mut UiCommandContext<'_>) {
 	let suppress_selection = ctx.suppress_selection;
 	let live_region = ctx.live_region;
 	close_timeline(state, timelines_selector, timeline_list, suppress_selection, live_region, false, frame);
+}
+
+pub(super) fn toggle_lock(ctx: &mut UiCommandContext<'_>) {
+	let state = &mut *ctx.state;
+	let Some(active_type) = state.timeline_manager.active().map(|t| t.timeline_type.clone()) else {
+		return;
+	};
+	let Some(account) = state.active_account_mut() else {
+		return;
+	};
+	let locked = if let Some(index) = account.locked_timelines.iter().position(|t| *t == active_type) {
+		account.locked_timelines.remove(index);
+		false
+	} else {
+		account.locked_timelines.push(active_type);
+		true
+	};
+	let _ = state.save_config();
+	ctx.live_region.announce(if locked { "Locked" } else { "Unlocked" });
 }
 
 pub(super) fn load_more_background(ctx: &mut UiCommandContext<'_>) {
