@@ -169,7 +169,7 @@ fn prompt_for_poll(
 		})
 		.collect();
 	let duration_label = StaticText::builder(&panel).with_label("Duration:").build();
-	let duration_choice = ComboBox::builder(&panel).with_choices(preset_labels).build();
+	let duration_choice = Choice::builder(&panel).with_choices(preset_labels).build();
 	let multiple_checkbox = CheckBox::builder(&panel).with_label("Allow multiple selections").build();
 	let hide_totals_checkbox = CheckBox::builder(&panel).with_label("Hide vote counts until poll closes").build();
 	let remove_poll_button = Button::builder(&panel).with_label("Remove Poll").build();

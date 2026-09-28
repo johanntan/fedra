@@ -208,8 +208,7 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 	update_checkbox.set_value(check_for_updates);
 	let channel_label = StaticText::builder(&general_panel).with_label("Updates:").build();
 	let channel_choices = vec!["Stable releases".to_string(), "Test builds".to_string()];
-	let channel_choice =
-		ComboBox::builder(&general_panel).with_choices(channel_choices).with_style(ComboBoxStyle::ReadOnly).build();
+	let channel_choice = Choice::builder(&general_panel).with_choices(channel_choices).build();
 	let channel_index = match update_channel {
 		crate::config::UpdateChannel::Stable => 0,
 		crate::config::UpdateChannel::Dev => 1,
@@ -221,10 +220,7 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 	let notification_label = StaticText::builder(&general_panel).with_label("Notifications:").build();
 	let notification_choices =
 		vec!["Classic Windows Notifications".to_string(), "Sound only".to_string(), "Disabled".to_string()];
-	let notification_choice = ComboBox::builder(&general_panel)
-		.with_choices(notification_choices)
-		.with_style(ComboBoxStyle::ReadOnly)
-		.build();
+	let notification_choice = Choice::builder(&general_panel).with_choices(notification_choices).build();
 	let notification_index = match notification_preference {
 		NotificationPreference::Classic => 0,
 		NotificationPreference::SoundOnly => 1,
@@ -278,8 +274,7 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 	let autoload_label = StaticText::builder(&timeline_panel).with_label("&Autoload posts:").build();
 	let autoload_choices =
 		vec!["Never".to_string(), "When reaching the end".to_string(), "When navigating past the end".to_string()];
-	let autoload_choice =
-		ComboBox::builder(&timeline_panel).with_choices(autoload_choices).with_style(ComboBoxStyle::ReadOnly).build();
+	let autoload_choice = Choice::builder(&timeline_panel).with_choices(autoload_choices).build();
 	let autoload_index = match autoload {
 		AutoloadMode::Never => 0,
 		AutoloadMode::AtEnd => 1,
@@ -297,8 +292,7 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 	fetch_limit_sizer.add(&fetch_limit_spin, 0, SizerFlag::empty(), 0);
 	let cw_label = StaticText::builder(&timeline_panel).with_label("Content warning display:").build();
 	let cw_choices = vec!["Show inline".to_string(), "Don't show".to_string(), "CW only".to_string()];
-	let cw_choice =
-		ComboBox::builder(&timeline_panel).with_choices(cw_choices).with_style(ComboBoxStyle::ReadOnly).build();
+	let cw_choice = Choice::builder(&timeline_panel).with_choices(cw_choices).build();
 	let cw_index = match content_warning_display {
 		ContentWarningDisplay::Inline => 0,
 		ContentWarningDisplay::Hidden => 1,
@@ -311,8 +305,7 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 	let emoji_mode_label = StaticText::builder(&timeline_panel).with_label("Hide &emoji in names:").build();
 	let emoji_mode_choices =
 		vec!["None".to_string(), "Unicode emojis".to_string(), "Instance emojis".to_string(), "All".to_string()];
-	let emoji_mode_choice =
-		ComboBox::builder(&timeline_panel).with_choices(emoji_mode_choices).with_style(ComboBoxStyle::ReadOnly).build();
+	let emoji_mode_choice = Choice::builder(&timeline_panel).with_choices(emoji_mode_choices).build();
 	let emoji_mode_index = match display_name_emoji_mode {
 		DisplayNameEmojiMode::None => 0,
 		DisplayNameEmojiMode::UnicodeOnly => 1,
@@ -372,10 +365,7 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 		StaticText::builder(&template_panel).with_label("&Window title template:").build();
 	let window_title_template_text = TextCtrl::builder(&template_panel).with_value(&window_title_template).build();
 	let template_timeline_label = StaticText::builder(&template_panel).with_label("&Timeline:").build();
-	let template_timeline_choice = ComboBox::builder(&template_panel)
-		.with_choices(timeline_key_strings)
-		.with_style(ComboBoxStyle::ReadOnly)
-		.build();
+	let template_timeline_choice = Choice::builder(&template_panel).with_choices(timeline_key_strings).build();
 	template_timeline_choice.set_selection(0);
 	let template_timeline_sizer = BoxSizer::builder(Orientation::Horizontal).build();
 	template_timeline_sizer.add(&template_timeline_label, 0, SizerFlag::AlignCenterVertical | SizerFlag::Right, 8);
@@ -473,10 +463,7 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 	];
 	let filter_timeline_key_strings: Vec<String> = filter_timeline_keys.iter().map(|s| (*s).to_string()).collect();
 	let filter_timeline_label = StaticText::builder(&filters_panel).with_label("&Timeline:").build();
-	let filter_timeline_choice = ComboBox::builder(&filters_panel)
-		.with_choices(filter_timeline_key_strings)
-		.with_style(ComboBoxStyle::ReadOnly)
-		.build();
+	let filter_timeline_choice = Choice::builder(&filters_panel).with_choices(filter_timeline_key_strings).build();
 	filter_timeline_choice.set_selection(0);
 	let filter_timeline_sizer = BoxSizer::builder(Orientation::Horizontal).build();
 	filter_timeline_sizer.add(&filter_timeline_label, 0, SizerFlag::AlignCenterVertical | SizerFlag::Right, 8);

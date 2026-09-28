@@ -228,7 +228,7 @@ pub fn prompt_for_account_selection(
 	let main_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	let list_label = StaticText::builder(&panel).with_label("User:").build();
 	let choices: Vec<String> = labels.iter().map(std::string::ToString::to_string).collect();
-	let combo = ComboBox::builder(&panel).with_choices(choices).with_style(ComboBoxStyle::ReadOnly).build();
+	let combo = Choice::builder(&panel).with_choices(choices).build();
 	combo.set_selection(0);
 	let button_sizer = BoxSizer::builder(Orientation::Horizontal).build();
 	let profile_button = Button::builder(&panel).with_id(ID_OK).with_label("View &Profile").build();
@@ -272,7 +272,7 @@ pub fn prompt_for_account_choice(
 	let main_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	let list_label = StaticText::builder(&panel).with_label("User:").build();
 	let choices: Vec<String> = labels.iter().map(std::string::ToString::to_string).collect();
-	let combo = ComboBox::builder(&panel).with_choices(choices).with_style(ComboBoxStyle::ReadOnly).build();
+	let combo = Choice::builder(&panel).with_choices(choices).build();
 	combo.set_selection(0);
 	let button_sizer = BoxSizer::builder(Orientation::Horizontal).build();
 	let ok_button = Button::builder(&panel).with_id(ID_OK).with_label("OK").build();
