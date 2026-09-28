@@ -4,6 +4,10 @@ on:
     branches:
       - main
   workflow_dispatch:
+# Pushing again while a run is going makes that run pointless, so the new one replaces it.
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: write
 env:
@@ -191,6 +195,11 @@ jobs:
     name: Publish latest release
     needs: [build, build-macos]
     runs-on: ubuntu-latest
+    # Every run publishes to the same latest release, so two uploading at once could mix one run's
+    # assets with another's signatures. Queue them instead.
+    concurrency:
+      group: dev-release
+      cancel-in-progress: false
     steps:
     - name: Checkout repository
       uses: actions/checkout@v5
