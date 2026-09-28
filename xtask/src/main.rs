@@ -58,7 +58,6 @@ fn project_root() -> PathBuf {
 	Path::new(&env!("CARGO_MANIFEST_DIR")).ancestors().nth(1).unwrap().to_path_buf()
 }
 
-#[cfg(not(target_os = "macos"))]
 fn arch_suffix() -> &'static str {
 	match env::consts::ARCH {
 		"aarch64" => "arm64",
@@ -143,6 +142,7 @@ fn build_mac_dmg(
 			fs::copy(entry.path(), &destination)?;
 		}
 	}
+	sign_mac_bundle(&bundle)?;
 	println!("Built app: {}", bundle.display());
 	let staging = target_dir.join("dmg-staging");
 	let _ = fs::remove_dir_all(&staging);
@@ -151,7 +151,7 @@ fn build_mac_dmg(
 		return Err("ditto failed to copy Fedra.app".into());
 	}
 	symlink("/Applications", staging.join("Applications"))?;
-	let dmg_path = target_dir.join("fedra.dmg");
+	let dmg_path = target_dir.join(format!("fedra-{}.dmg", arch_suffix()));
 	let status = Command::new("hdiutil")
 		.args(["create", "-volname", "Fedra", "-format", "UDZO", "-ov", "-srcfolder"])
 		.arg(&staging)
@@ -161,6 +161,26 @@ fn build_mac_dmg(
 		return Err("hdiutil create failed".into());
 	}
 	println!("Created DMG: {}", dmg_path.display());
+	Ok(())
+}
+
+/// Signs the executable, then the bundle, with the Developer ID identity in `MACOS_SIGN_IDENTITY`
+/// so the DMG can be notarized. Builds without it are left ad hoc signed.
+#[cfg(target_os = "macos")]
+fn sign_mac_bundle(bundle: &Path) -> Result<(), Box<dyn Error>> {
+	let Ok(identity) = env::var("MACOS_SIGN_IDENTITY") else {
+		println!("MACOS_SIGN_IDENTITY not set, skipping code signing.");
+		return Ok(());
+	};
+	for path in [bundle.join("Contents/MacOS/fedra"), bundle.to_path_buf()] {
+		let status = Command::new("codesign")
+			.args(["--force", "--timestamp", "--options", "runtime", "--sign", &identity])
+			.arg(&path)
+			.status()?;
+		if !status.success() {
+			return Err(format!("codesign failed for {}", path.display()).into());
+		}
+	}
 	Ok(())
 }
 
