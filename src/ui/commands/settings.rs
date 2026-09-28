@@ -6,15 +6,13 @@ use crate::{
 	accounts::update_window_title,
 	config::ContentWarningDisplay,
 	network::NetworkCommand,
-	ui::{dialogs, menu::update_menu_labels, timeline_list::TimelineList, timeline_view::update_active_timeline_ui},
+	ui::{dialogs, menu::update_menu_labels, timeline_list::TimelineList},
 	ui_wake::UiCommandSender,
 };
 
 pub(super) fn show_options(ctx: &mut UiCommandContext<'_>) {
 	let state = &mut *ctx.state;
 	let frame = ctx.frame;
-	let timeline_list = &ctx.timeline_list;
-	let suppress_selection = ctx.suppress_selection;
 	let quick_action_keys_enabled = ctx.quick_action_keys_enabled;
 	let autoload_mode = ctx.autoload_mode;
 	let sort_order_cell = ctx.sort_order_cell;
@@ -126,21 +124,7 @@ pub(super) fn show_options(ctx: &mut UiCommandContext<'_>) {
 			dialogs::show_error(frame, &err);
 		}
 		if needs_refresh {
-			let view_options =
-				state.timeline_manager.active().map(|a| state.timeline_view_options_for(&a.timeline_type));
-			let active_index = state.timeline_manager.active_index();
-			if let Some(view_options) = view_options
-				&& let Some(active) = state.timeline_manager.active_mut()
-			{
-				update_active_timeline_ui(
-					timeline_list,
-					active,
-					suppress_selection,
-					&view_options,
-					&state.cw_expanded,
-					active_index,
-				);
-			}
+			super::timeline::refresh_active_timeline(ctx);
 		}
 	}
 }

@@ -1,10 +1,12 @@
 //! Commands that act on users, profiles, and hashtags.
 
+use wxdragon::prelude::*;
+
 use super::{
 	UiCommand, UiCommandContext, handle_ui_command,
 	post::post_result_to_data,
 	selection::{acct_from_mention_link, foreign_url, get_selected_entry, get_selected_status},
-	timeline::open_timeline,
+	timeline::{open_timeline, refresh_active_timeline},
 };
 use crate::{
 	html,
@@ -529,6 +531,32 @@ pub(super) fn add_user_to_list(ctx: &mut UiCommandContext<'_>, account_id: Strin
 	} else {
 		live_region.announce("Network not available");
 	}
+}
+
+pub(super) fn set_alias(ctx: &mut UiCommandContext<'_>, account: &Account) {
+	let state = &mut *ctx.state;
+	let key = account.alias_key();
+	let current = state.config.user_aliases.get(&key).cloned().unwrap_or_default();
+	let dialog = TextEntryDialog::builder(
+		ctx.frame,
+		&format!("Alias for @{}, or leave it empty to use their display name:", account.full_acct()),
+		"Set Alias",
+	)
+	.with_default_value(&current)
+	.build();
+	if dialog.show_modal() != ID_OK {
+		return;
+	}
+	let alias = dialog.get_value().unwrap_or_default().trim().to_string();
+	if alias.is_empty() {
+		state.config.user_aliases.remove(&key);
+	} else {
+		state.config.user_aliases.insert(key, alias);
+	}
+	if let Err(err) = state.save_config() {
+		dialogs::show_error(ctx.frame, &err);
+	}
+	refresh_active_timeline(ctx);
 }
 
 pub(super) fn send_direct_message(ctx: &mut UiCommandContext<'_>, account: Account) {

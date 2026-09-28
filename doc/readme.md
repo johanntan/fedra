@@ -25,6 +25,7 @@ Windows 10 or 11
   - Follow/unfollow, block, mute, show/hide a user's boosts, and add users to lists
   - Accept or reject follow requests
   - Browse a user's followers and following
+  - Give anyone an alias that Fedra shows in place of their display name
   - Follow/unfollow and mute hashtags
   - View users who boosted/favorited posts
   - Search for accounts, hashtags, and posts
@@ -74,6 +75,9 @@ Home and Notifications are opened automatically at startup, but they are not spe
 
 ### Reordering and Switching
 Reorder timelines with `Shift+Left Arrow` and `Shift+Right Arrow` from either list. Switch between them with `Left Arrow`/`Right Arrow` or `Ctrl+1` through `Ctrl+9`.
+
+### Permanent Timelines
+Make Timeline Permanent or Closable (`Ctrl+Shift+P`, or `Ctrl+P` in Quick Action Keys mode) makes the current timeline permanent, so it can't be closed until you press it again. Permanent timelines are saved per account.
 
 ### Refreshing
 Streaming timelines update themselves. `F5` refreshes the current timeline at any time, and `.` (Load More) fetches older entries. If a streaming timeline loses its connection, Fedra re-fetches it about once a minute until streaming comes back.
@@ -344,7 +348,7 @@ If another program already uses one of these, Fedra says so when it starts, and 
 | Open List... | None | None |
 | Load More | `.` | `.` |
 | Close Timeline | `Ctrl+W` | `Backspace` |
-| Lock or Unlock Timeline | `Ctrl+Shift+P` | `Ctrl+P` |
+| Make Timeline Permanent or Closable | `Ctrl+Shift+P` | `Ctrl+P` |
 | Refresh | `F5` | `F5` |
 | Previous Timeline | `Left` | `Left` |
 | Next Timeline | `Right` | `Right` |
@@ -367,6 +371,9 @@ Actions with no default binding are still reachable from the menu bar or the pos
 
 ### Quick Action Keys Mode
 Toggle with `Ctrl+Shift+Q`. While it is on, the single-letter bindings in the table above act on the selected post instead of being typed, and `Backspace` closes the current timeline.
+
+## User Aliases
+To show someone under a name you choose, open their profile or find them in a followers or following list, open the actions menu, and choose Set Alias. The alias replaces their display name everywhere in your timelines, for every account you use in Fedra. To go back to their display name, set the alias again and leave it empty.
 
 ## Accounts
 `Ctrl+Alt+A` opens the accounts dialog, where you can **Add**, **Remove**, or **Switch To** an account. Adding an account walks you through authorizing Fedra on your instance in the browser. `Ctrl+[` and `Ctrl+]` cycle accounts directly; each account keeps its own set of open timelines, and the newly active account's handle is announced when you switch.

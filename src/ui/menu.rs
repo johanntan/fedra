@@ -8,10 +8,10 @@ use crate::{
 	ID_HOME_TIMELINE, ID_LOAD_MORE, ID_LOCAL_TIMELINE, ID_MANAGE_ACCOUNTS, ID_MANAGE_FILTERS, ID_MANAGE_LISTS,
 	ID_MENTIONS_TIMELINE, ID_NEW_POST, ID_NOTIFICATIONS_TIMELINE, ID_OPEN_INSTANCE_TIMELINE_BY_INPUT, ID_OPEN_LINKS,
 	ID_OPEN_LIST, ID_OPEN_USER_TIMELINE_BY_INPUT, ID_OPTIONS, ID_PIN_POST, ID_PLAY_MEDIA, ID_QUOTE, ID_REFRESH,
-	ID_REPLY, ID_REPLY_AUTHOR, ID_SEARCH, ID_SENT_TIMELINE, ID_TOGGLE_FOLLOW, ID_TOGGLE_TIMELINE_LOCK, ID_VIEW_BOOSTS,
-	ID_VIEW_FAVORITES, ID_VIEW_HASHTAGS, ID_VIEW_HELP, ID_VIEW_IN_BROWSER, ID_VIEW_MENTIONS, ID_VIEW_POST,
-	ID_VIEW_PROFILE, ID_VIEW_QUOTED_THREAD, ID_VIEW_THREAD, ID_VIEW_USER_TIMELINE, ID_VOTE, config::ActionId,
-	ui::commands::get_selected_status,
+	ID_REPLY, ID_REPLY_AUTHOR, ID_SEARCH, ID_SENT_TIMELINE, ID_TOGGLE_FOLLOW, ID_TOGGLE_PERMANENT_TIMELINE,
+	ID_VIEW_BOOSTS, ID_VIEW_FAVORITES, ID_VIEW_HASHTAGS, ID_VIEW_HELP, ID_VIEW_IN_BROWSER, ID_VIEW_MENTIONS,
+	ID_VIEW_POST, ID_VIEW_PROFILE, ID_VIEW_QUOTED_THREAD, ID_VIEW_THREAD, ID_VIEW_USER_TIMELINE, ID_VOTE,
+	config::ActionId, ui::commands::get_selected_status,
 };
 
 pub fn build_menu_bar() -> MenuBar {
@@ -152,7 +152,11 @@ pub fn build_menu_bar() -> MenuBar {
 		.append_item(ID_LOAD_MORE, "Load &More\t.", "Load more posts from server")
 		.append_separator()
 		.append_item(ID_CLOSE_TIMELINE, "&Close Timeline", "Close current timeline")
-		.append_item(ID_TOGGLE_TIMELINE_LOCK, "Loc&k or Unlock Timeline", "Stop or allow closing the current timeline")
+		.append_item(
+			ID_TOGGLE_PERMANENT_TIMELINE,
+			"Make Timeline &Permanent or Closable",
+			"Stop or allow closing the current timeline",
+		)
 		.append_separator()
 		.append_item(ID_REFRESH, "&Refresh\tF5", "Refresh current timeline")
 		.build();
@@ -474,9 +478,9 @@ pub fn update_menu_labels(menu_bar: &MenuBar, state: &AppState) {
 	set_item_label(menu_bar, ID_CLOSE_TIMELINE, "&Close Timeline", &sc.get_menu_str(q, ActionId::CloseTimeline));
 	set_item_label(
 		menu_bar,
-		ID_TOGGLE_TIMELINE_LOCK,
-		"Loc&k or Unlock Timeline",
-		&sc.get_menu_str(q, ActionId::ToggleTimelineLock),
+		ID_TOGGLE_PERMANENT_TIMELINE,
+		"Make Timeline &Permanent or Closable",
+		&sc.get_menu_str(q, ActionId::TogglePermanentTimeline),
 	);
 	set_item_label(menu_bar, ID_REFRESH, "&Refresh", &sc.get_menu_str(q, ActionId::Refresh));
 	set_item_label(menu_bar, ID_MANAGE_ACCOUNTS, "Manage &Accounts...", &sc.get_menu_str(q, ActionId::ManageAccounts));

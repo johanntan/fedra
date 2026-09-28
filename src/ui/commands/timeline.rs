@@ -150,8 +150,8 @@ pub(super) fn close_timeline(
 		live_region.announce("Cannot close the only open timeline");
 		return;
 	}
-	if state.active_account().is_some_and(|account| account.locked_timelines.contains(&active_type)) {
-		live_region.announce("This timeline is locked");
+	if state.active_account().is_some_and(|account| account.permanent_timelines.contains(&active_type)) {
+		live_region.announce("This timeline is permanent");
 		return;
 	}
 	if !state.timeline_manager.close(&active_type, use_history) {
@@ -235,7 +235,25 @@ pub(super) fn close(ctx: &mut UiCommandContext<'_>) {
 	close_timeline(state, timelines_selector, timeline_list, suppress_selection, live_region, false, frame);
 }
 
-pub(super) fn toggle_lock(ctx: &mut UiCommandContext<'_>) {
+pub(super) fn refresh_active_timeline(ctx: &mut UiCommandContext<'_>) {
+	let state = &mut *ctx.state;
+	let active_index = state.timeline_manager.active_index();
+	let view_options = state.timeline_manager.active().map(|a| state.timeline_view_options_for(&a.timeline_type));
+	if let Some(view_options) = view_options
+		&& let Some(active) = state.timeline_manager.active_mut()
+	{
+		update_active_timeline_ui(
+			&ctx.timeline_list,
+			active,
+			ctx.suppress_selection,
+			&view_options,
+			&state.cw_expanded,
+			active_index,
+		);
+	}
+}
+
+pub(super) fn toggle_permanent(ctx: &mut UiCommandContext<'_>) {
 	let state = &mut *ctx.state;
 	let Some(active_type) = state.timeline_manager.active().map(|t| t.timeline_type.clone()) else {
 		return;
@@ -243,15 +261,15 @@ pub(super) fn toggle_lock(ctx: &mut UiCommandContext<'_>) {
 	let Some(account) = state.active_account_mut() else {
 		return;
 	};
-	let locked = if let Some(index) = account.locked_timelines.iter().position(|t| *t == active_type) {
-		account.locked_timelines.remove(index);
+	let permanent = if let Some(index) = account.permanent_timelines.iter().position(|t| *t == active_type) {
+		account.permanent_timelines.remove(index);
 		false
 	} else {
-		account.locked_timelines.push(active_type);
+		account.permanent_timelines.push(active_type);
 		true
 	};
 	let _ = state.save_config();
-	ctx.live_region.announce(if locked { "Locked" } else { "Unlocked" });
+	ctx.live_region.announce(if permanent { "Permanent" } else { "Closable" });
 }
 
 pub(super) fn load_more_background(ctx: &mut UiCommandContext<'_>) {

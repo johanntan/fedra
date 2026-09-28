@@ -3,7 +3,6 @@
 use serde::Deserialize;
 
 use crate::{
-	config::DisplayNameEmojiMode,
 	mastodon::{Account, Status},
 	template::render_template,
 	timeline::TimelineTextOptions,
@@ -60,7 +59,7 @@ impl Notification {
 	}
 
 	pub fn timeline_display(&self, options: &TimelineTextOptions, cw_expanded: bool) -> String {
-		let actor = self.account.timeline_display_name(options.display_name_emoji_mode);
+		let actor = self.account.timeline_display_name(options);
 		match self.kind.as_str() {
 			"mention" | "status" => self.status_text(options, cw_expanded),
 			"reblog" => self.status.as_ref().map_or_else(
@@ -86,7 +85,7 @@ impl Notification {
 			"poll" => format!("Poll ended: {}", self.status_text(options, cw_expanded)),
 			"update" => format!("{} edited {}", actor, self.status_text(options, cw_expanded)),
 			"admin.sign_up" => format!("{actor} signed up"),
-			"admin.report" => self.format_admin_report(&actor, options.display_name_emoji_mode),
+			"admin.report" => self.format_admin_report(&actor, options),
 			"severed_relationships" => "Some of your follow relationships have been severed".to_string(),
 			"moderation_warning" => "You have received a moderation warning".to_string(),
 			_ => self.status_text_if_any(options, cw_expanded).map_or_else(
@@ -106,14 +105,14 @@ impl Notification {
 		}
 	}
 
-	fn format_admin_report(&self, reporter: &str, display_name_emoji_mode: DisplayNameEmojiMode) -> String {
+	fn format_admin_report(&self, reporter: &str, options: &TimelineTextOptions) -> String {
 		self.report.as_ref().map_or_else(
 			|| format!("{reporter} filed a report"),
 			|report| {
-				let target = report.target_account.as_ref().map_or_else(
-					|| "unknown user".to_string(),
-					|account| account.timeline_display_name(display_name_emoji_mode),
-				);
+				let target = report
+					.target_account
+					.as_ref()
+					.map_or_else(|| "unknown user".to_string(), |account| account.timeline_display_name(options));
 				let category = match report.category.as_str() {
 					"spam" => "spam",
 					"legal" => "legal issue",

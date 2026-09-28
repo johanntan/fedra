@@ -7,6 +7,7 @@ use crate::{
 	html::strip_html,
 	mastodon::{serde_util::deserialize_u64_or_zero, time::friendly_date},
 	text::strip_display_name_emojis,
+	timeline::TimelineTextOptions,
 };
 
 #[derive(Debug, Clone, Deserialize)]
@@ -91,7 +92,17 @@ impl Account {
 		self.acct.clone()
 	}
 
-	pub fn timeline_display_name(&self, mode: DisplayNameEmojiMode) -> String {
+	pub fn alias_key(&self) -> String {
+		self.full_acct().to_lowercase()
+	}
+
+	pub fn timeline_display_name(&self, options: &TimelineTextOptions) -> String {
+		if !options.user_aliases.is_empty()
+			&& let Some(alias) = options.user_aliases.get(&self.alias_key())
+		{
+			return alias.clone();
+		}
+		let mode = options.display_name_emoji_mode;
 		if mode == DisplayNameEmojiMode::None {
 			return self.display_name_or_username().to_string();
 		}

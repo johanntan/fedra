@@ -156,6 +156,7 @@ impl FollowListDialog {
 			}
 			menu.append(user_actions::ID_ACTION_SEND_DIRECT_MESSAGE, "Send Direct Message...", "", ItemKind::Normal);
 			menu.append(user_actions::ID_ACTION_OPEN_BROWSER, "Open in Browser", "", ItemKind::Normal);
+			menu.append(user_actions::ID_ACTION_SET_ALIAS, "Set Alias...", "", ItemKind::Normal);
 			menu.append_separator();
 			menu.append(user_actions::ID_ACTION_VIEW_FOLLOWERS, "View Followers", "", ItemKind::Normal);
 			menu.append(user_actions::ID_ACTION_VIEW_FOLLOWING, "View Following", "", ItemKind::Normal);
@@ -198,6 +199,10 @@ impl FollowListDialog {
 			}
 			if id == user_actions::ID_ACTION_ADD_TO_LIST {
 				let _ = ui_tx.send(crate::ui::commands::UiCommand::AddUserToList(account_id));
+				return;
+			}
+			if id == user_actions::ID_ACTION_SET_ALIAS {
+				let _ = ui_tx.send(crate::ui::commands::UiCommand::SetUserAlias(Box::new(account.clone())));
 				return;
 			}
 			if id == user_actions::ID_ACTION_SEND_DIRECT_MESSAGE {

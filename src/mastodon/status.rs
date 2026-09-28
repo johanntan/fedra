@@ -281,7 +281,7 @@ impl Status {
 			},
 			|boosted| {
 				let mut vars = boosted.build_template_vars(options, cw_expanded, filter_ctx);
-				vars.booster = self.account.timeline_display_name(options.display_name_emoji_mode);
+				vars.booster = self.account.timeline_display_name(options);
 				vars.booster_username = format!("@{}", self.account.acct);
 				render_template(boost_template, &vars)
 			},
@@ -309,7 +309,7 @@ impl Status {
 		cw_expanded: bool,
 		filter_ctx: &FilterContext,
 	) -> PostTemplateVars {
-		let author = self.account.timeline_display_name(options.display_name_emoji_mode);
+		let author = self.account.timeline_display_name(options);
 		let username = format!("@{}", self.account.acct);
 		let filter_cw = self.filter_warning(filter_ctx);
 		let (content_warning, is_filtered) =
@@ -341,7 +341,7 @@ impl Status {
 				|| (String::new(), String::new(), String::new(), String::new(), String::new()),
 				|quote| {
 					strip_re_prefix(&mut content);
-					let author = quote.account.timeline_display_name(options.display_name_emoji_mode);
+					let author = quote.account.timeline_display_name(options);
 					let username = format!("@{}", quote.account.acct);
 					let mut content = quote.content_with_cw(options.cw_display, cw_expanded);
 					// The quoted post can itself be a quote of another post, in which case its

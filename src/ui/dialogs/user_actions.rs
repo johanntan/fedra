@@ -24,6 +24,7 @@ pub const ID_ACTION_ADD_TO_LIST: i32 = 6014;
 pub const ID_ACTION_ENABLE_NOTIFICATIONS: i32 = 6015;
 pub const ID_ACTION_DISABLE_NOTIFICATIONS: i32 = 6016;
 pub const ID_ACTION_SEND_DIRECT_MESSAGE: i32 = 6017;
+pub const ID_ACTION_SET_ALIAS: i32 = 6018;
 
 pub fn append_relationship_text(text: &mut String, relationship: &Relationship, is_own_account: bool) {
 	let mut body = String::new();
@@ -114,6 +115,7 @@ pub fn setup_actions_button(
 		}
 		menu.append(ID_ACTION_SEND_DIRECT_MESSAGE, "Send Direct Message...", "", ItemKind::Normal);
 		menu.append(ID_ACTION_OPEN_BROWSER, "Open in Browser", "", ItemKind::Normal);
+		menu.append(ID_ACTION_SET_ALIAS, "Set Alias...", "", ItemKind::Normal);
 		menu.append_separator();
 		menu.append(ID_ACTION_VIEW_FOLLOWERS, "View Followers", "", ItemKind::Normal);
 		menu.append(ID_ACTION_VIEW_FOLLOWING, "View Following", "", ItemKind::Normal);
@@ -144,6 +146,10 @@ pub fn setup_actions_button(
 		}
 		if id == ID_ACTION_ADD_TO_LIST {
 			let _ = ui_tx.send(crate::ui::commands::UiCommand::AddUserToList(account_id));
+			return;
+		}
+		if id == ID_ACTION_SET_ALIAS {
+			let _ = ui_tx.send(crate::ui::commands::UiCommand::SetUserAlias(Box::new(account.clone())));
 			return;
 		}
 		if id == ID_ACTION_SEND_DIRECT_MESSAGE {

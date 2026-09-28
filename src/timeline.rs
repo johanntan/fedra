@@ -141,6 +141,7 @@ pub enum TimelineEntry {
 pub struct TimelineTextOptions {
 	pub cw_display: ContentWarningDisplay,
 	pub display_name_emoji_mode: DisplayNameEmojiMode,
+	pub user_aliases: std::collections::BTreeMap<String, String>,
 	pub show_link_previews: bool,
 	pub post_template: String,
 	pub boost_template: String,
@@ -155,6 +156,7 @@ impl TimelineTextOptions {
 		Self {
 			cw_display: config.content_warning_display,
 			display_name_emoji_mode: config.display_name_emoji_mode,
+			user_aliases: config.user_aliases.clone(),
 			show_link_previews: config.show_link_previews,
 			post_template: config.templates.resolve_post_template(key).to_string(),
 			boost_template: config.templates.resolve_boost_template(key).to_string(),
@@ -168,6 +170,7 @@ impl TimelineTextOptions {
 		Self {
 			cw_display: config.content_warning_display,
 			display_name_emoji_mode: config.display_name_emoji_mode,
+			user_aliases: config.user_aliases.clone(),
 			show_link_previews: config.show_link_previews,
 			post_template: DEFAULT_POST_TEMPLATE.to_string(),
 			boost_template: DEFAULT_BOOST_TEMPLATE.to_string(),
@@ -200,7 +203,7 @@ impl TimelineEntry {
 			),
 			Self::Notification(notification) => notification.timeline_display(options, cw_expanded),
 			Self::Account(account) => {
-				let name = account.timeline_display_name(options.display_name_emoji_mode);
+				let name = account.timeline_display_name(options);
 				format!("[Account] {} (@{}) - {} followers", name, account.acct, account.followers_count)
 			}
 			Self::Hashtag(tag) => {
