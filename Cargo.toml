@@ -46,7 +46,7 @@ live-region = "0.3.2"
 objc = "0.2.7"
 
 [build-dependencies]
-shipfitter = { git = "https://github.com/trypsynth/shipfitter", features = ["windows-resources"] }
+shipfitter = { version = "0.1.0", features = ["windows-resources"] }
 
 [patch.crates-io]
 live-region = { git = "https://github.com/trypsynth/live-region" }

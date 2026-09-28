@@ -2393,7 +2393,8 @@ dependencies = [
 [[package]]
 name = "shipfitter"
 version = "0.1.0"
-source = "git+https://github.com/trypsynth/shipfitter#0f6fa5a8405fc7d22d1858973c64df3a0e5445e6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9742c6f21fa97433d11340b43670b7d28df18e5dbb2c4741fe155d3ca8feaf7d"
 dependencies = [
  "embed-manifest",
  "flate2",
