@@ -15,6 +15,7 @@ mod mastodon;
 mod network;
 mod notifications;
 mod responses;
+mod speech;
 mod streaming;
 mod template;
 mod text;
@@ -280,9 +281,11 @@ fn main() {
 			update_menu_labels(&mb, &state);
 		}
 		switch_to_account(&mut state, &frame, timelines_selector, &timeline_list, &suppress_selection, false, None);
-		let app_shell = Rc::new(ui::app_shell::install_app_shell(&frame, ui_tx.clone(), &state.config.hotkey));
+		let app_shell = Rc::new(ui::app_shell::install_app_shell(&frame, ui_tx.clone()));
 		let app_shell_close = app_shell.clone();
 		state.app_shell = Some(app_shell);
+		speech::init();
+		ui::commands::register_hotkeys(&state, &ui_tx, &timeline_list);
 		if state.config.check_for_updates_on_startup {
 			crate::ui::update_check::run_update_check(frame, true);
 		}

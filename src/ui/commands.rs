@@ -10,6 +10,8 @@ mod app;
 #[allow(clippy::needless_pass_by_ref_mut, clippy::needless_pass_by_value)]
 mod find;
 #[allow(clippy::needless_pass_by_ref_mut, clippy::needless_pass_by_value)]
+mod global;
+#[allow(clippy::needless_pass_by_ref_mut, clippy::needless_pass_by_value)]
 mod post;
 mod selection;
 #[allow(clippy::needless_pass_by_ref_mut, clippy::needless_pass_by_value)]
@@ -23,6 +25,7 @@ use std::cell::Cell;
 
 pub use post::run_edit_post_dialog;
 pub use selection::get_selected_status;
+pub use settings::register_hotkeys;
 use url::Url;
 use wxdragon::prelude::*;
 
@@ -90,6 +93,7 @@ pub enum UiCommand {
 	ToggleContentWarning,
 	ToggleFollow,
 	ToggleWindowVisibility,
+	Global(crate::config::GlobalAction),
 	SetQuickActionKeysEnabled(bool),
 	SwitchTimelineByIndex(usize),
 	OAuthResult { result: Result<auth::OAuthResult, String>, instance_url: Url },
@@ -157,6 +161,7 @@ pub fn handle_ui_command(cmd: UiCommand, ctx: &mut UiCommandContext<'_>) {
 		UiCommand::LoadMore => timeline::load_more(ctx),
 		UiCommand::ToggleContentWarning => post::toggle_content_warning(ctx),
 		UiCommand::ToggleWindowVisibility => app::toggle_window_visibility(ctx),
+		UiCommand::Global(action) => global::run(ctx, action),
 		UiCommand::SetQuickActionKeysEnabled(enabled) => app::set_quick_action_keys_enabled(ctx, enabled),
 		UiCommand::SwitchTimelineByIndex(index) => timeline::switch_timeline_by_index(ctx, index),
 		UiCommand::TimelineSelectionChanged(index) => timeline::timeline_selection_changed(ctx, index),

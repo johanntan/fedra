@@ -2,10 +2,12 @@
 
 use super::{UiCommand, UiCommandContext};
 use crate::{
+	AppState,
 	accounts::update_window_title,
 	config::ContentWarningDisplay,
 	network::NetworkCommand,
-	ui::{dialogs, menu::update_menu_labels, timeline_view::update_active_timeline_ui},
+	ui::{dialogs, menu::update_menu_labels, timeline_list::TimelineList, timeline_view::update_active_timeline_ui},
+	ui_wake::UiCommandSender,
 };
 
 pub(super) fn show_options(ctx: &mut UiCommandContext<'_>) {
@@ -38,7 +40,7 @@ pub(super) fn show_options(ctx: &mut UiCommandContext<'_>) {
 			restore_open_timelines: state.config.restore_open_timelines,
 			notification_preference: state.config.notification_preference,
 			disabled_notification_types: state.config.disabled_notification_types.clone(),
-			hotkey: state.config.hotkey.clone(),
+			global_keys: state.config.global_keys,
 			shortcuts: state.config.shortcuts.clone(),
 			templates: state.config.templates.clone(),
 			filters: state.config.filters.clone(),
@@ -64,7 +66,7 @@ pub(super) fn show_options(ctx: &mut UiCommandContext<'_>) {
 			restore_open_timelines,
 			notification_preference,
 			disabled_notification_types,
-			hotkey,
+			global_keys,
 			shortcuts,
 			templates,
 			filters,
@@ -79,7 +81,8 @@ pub(super) fn show_options(ctx: &mut UiCommandContext<'_>) {
 			|| state.config.templates != templates
 			|| state.config.filters != filters
 			|| state.config.window_title_template != window_title_template;
-		let hotkey_changed = state.config.hotkey != hotkey;
+		let hotkeys_changed =
+			state.config.global_keys != global_keys || state.config.shortcuts.global != shortcuts.global;
 		state.config.enter_to_send = enter_to_send;
 		state.config.always_show_link_dialog = always_show_link_dialog;
 		state.config.show_link_previews = show_link_previews;
@@ -97,7 +100,7 @@ pub(super) fn show_options(ctx: &mut UiCommandContext<'_>) {
 		state.config.restore_open_timelines = restore_open_timelines;
 		state.config.notification_preference = notification_preference;
 		state.config.disabled_notification_types = disabled_notification_types;
-		state.config.hotkey = hotkey;
+		state.config.global_keys = global_keys;
 		state.config.shortcuts = shortcuts;
 		*shortcuts_cell.borrow_mut() = state.config.shortcuts.clone();
 		state.config.templates = templates;
@@ -116,9 +119,8 @@ pub(super) fn show_options(ctx: &mut UiCommandContext<'_>) {
 		}
 		state.config.sort_order = sort_order;
 		state.config.preserve_thread_order = preserve_thread_order;
-		#[cfg(target_os = "windows")]
-		if hotkey_changed && let Some(shell) = &state.app_shell {
-			shell.re_register_hotkey(ui_tx.clone(), &state.config.hotkey);
+		if hotkeys_changed {
+			register_hotkeys(state, ui_tx, ctx.live_region);
 		}
 		if let Err(err) = state.save_config() {
 			dialogs::show_error(frame, &err);
@@ -148,7 +150,11 @@ pub(super) fn customize_shortcuts(ctx: &mut UiCommandContext<'_>) {
 	let frame = ctx.frame;
 	let shortcuts_cell = ctx.shortcuts_cell;
 	if let Some(new_shortcuts) = dialogs::prompt_for_shortcuts(frame, &state.config.shortcuts) {
+		let hotkeys_changed = state.config.shortcuts.global != new_shortcuts.global;
 		state.config.shortcuts = new_shortcuts;
+		if hotkeys_changed {
+			register_hotkeys(state, ctx.ui_tx, ctx.live_region);
+		}
 		*shortcuts_cell.borrow_mut() = state.config.shortcuts.clone();
 		if let Err(err) = state.save_config() {
 			dialogs::show_error(frame, &err);
@@ -156,6 +162,15 @@ pub(super) fn customize_shortcuts(ctx: &mut UiCommandContext<'_>) {
 		if let Some(mb) = frame.get_menu_bar() {
 			update_menu_labels(&mb, state);
 		}
+	}
+}
+
+/// Registers the global shortcuts from the config, and says which couldn't be registered.
+pub fn register_hotkeys(state: &AppState, ui_tx: &UiCommandSender, live_region: &TimelineList) {
+	let Some(shell) = &state.app_shell else { return };
+	let failed = shell.register_hotkeys(ui_tx.clone(), &state.config.shortcuts.global, state.config.global_keys);
+	if !failed.is_empty() {
+		live_region.announce(&format!("Another program is using {}", failed.join(", ")));
 	}
 }
 

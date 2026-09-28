@@ -3,17 +3,27 @@
 //! The dialog itself lives in `wx_utils::shortcuts`; all that is needed here is to describe
 //! Fedra's keymap to it. Quick keys and normal mode are separate keymaps with their own
 //! defaults, so the same key can mean different things in each and a conflict in one is not a
-//! conflict in the other. That is what `TabKind::SeparateKeymaps` says.
+//! conflict in the other. The global shortcuts are system-wide hotkeys, which fire even while
+//! Fedra's window has focus, so they conflict with both.
 
-use wx_utils::shortcuts::{ShortcutModel, TabKind};
+use wx_utils::shortcuts::{ShortcutModel, TabScope};
 use wxdragon::prelude::*;
 
-use crate::config::{ActionId, KeyChord, ShortcutsConfig};
+use crate::config::{ActionId, GlobalAction, KeyChord, ShortcutsConfig};
 
 /// Tab order. Quick keys comes first because it is the mode most users customize.
 const QUICK_KEYS_TAB: usize = 0;
+const NORMAL_TAB: usize = 1;
+const GLOBAL_TAB: usize = 2;
 
-/// A [`ShortcutsConfig`] presented as one tab per input mode.
+/// A row in the dialog: an in-window action or a global one.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Action {
+	Local(ActionId),
+	Global(GlobalAction),
+}
+
+/// A [`ShortcutsConfig`] presented as one tab per input mode, plus one for global shortcuts.
 ///
 /// A newtype because both the trait and `ShortcutsConfig` are foreign to this module's owner.
 #[derive(Clone)]
@@ -26,38 +36,63 @@ impl ModeShortcutsModel {
 }
 
 impl ShortcutModel for ModeShortcutsModel {
-	type Action = ActionId;
+	type Action = Action;
 
 	fn tabs(&self) -> Vec<String> {
-		vec!["Quick Keys Mode".to_string(), "Normal Mode".to_string()]
+		vec!["Quick Keys Mode".to_string(), "Normal Mode".to_string(), "Global".to_string()]
 	}
 
-	fn tab_kind(&self) -> TabKind {
-		TabKind::SeparateKeymaps
+	fn tab_scope(&self, tab: usize) -> TabScope {
+		match tab {
+			QUICK_KEYS_TAB => TabScope::Mode(0),
+			NORMAL_TAB => TabScope::Mode(1),
+			_ => TabScope::Global,
+		}
 	}
 
-	fn actions(&self, _tab: usize) -> Vec<ActionId> {
-		ActionId::all().to_vec()
+	fn actions(&self, tab: usize) -> Vec<Action> {
+		if tab == GLOBAL_TAB {
+			GlobalAction::all().iter().map(|&action| Action::Global(action)).collect()
+		} else {
+			ActionId::all().iter().map(|&action| Action::Local(action)).collect()
+		}
 	}
 
-	fn action_name(&self, action: ActionId) -> String {
-		action.display_name().to_string()
+	fn action_name(&self, action: Action) -> String {
+		match action {
+			Action::Local(action) => action.display_name(),
+			Action::Global(action) => action.display_name(),
+		}
+		.to_string()
 	}
 
-	fn chord(&self, tab: usize, action: ActionId) -> Option<KeyChord> {
-		self.0.get_chord(Self::is_quick(tab), action)
+	fn chord(&self, tab: usize, action: Action) -> Option<KeyChord> {
+		match action {
+			Action::Local(action) => self.0.get_chord(Self::is_quick(tab), action),
+			Action::Global(action) => self.0.global.get_chord(action),
+		}
 	}
 
-	fn set_chord(&mut self, tab: usize, action: ActionId, chord: Option<KeyChord>) {
-		self.0.active_mode_mut(Self::is_quick(tab)).set_chord(action, chord);
+	fn set_chord(&mut self, tab: usize, action: Action, chord: Option<KeyChord>) {
+		match action {
+			Action::Local(action) => self.0.active_mode_mut(Self::is_quick(tab)).set_chord(action, chord),
+			Action::Global(action) => self.0.global.set_chord(action, chord),
+		}
 	}
 
-	fn reset_action(&mut self, tab: usize, action: ActionId) {
-		self.0.active_mode_mut(Self::is_quick(tab)).reset_action(action);
+	fn reset_action(&mut self, tab: usize, action: Action) {
+		match action {
+			Action::Local(action) => self.0.active_mode_mut(Self::is_quick(tab)).reset_action(action),
+			Action::Global(action) => self.0.global.reset_action(action),
+		}
 	}
 
 	fn reset_all(&mut self, tab: usize) {
-		self.0.active_mode_mut(Self::is_quick(tab)).reset_all();
+		if tab == GLOBAL_TAB {
+			self.0.global.reset_all();
+		} else {
+			self.0.active_mode_mut(Self::is_quick(tab)).reset_all();
+		}
 	}
 }
 

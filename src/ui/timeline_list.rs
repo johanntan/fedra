@@ -194,6 +194,15 @@ impl TimelineList {
 			self.panel.navigate(forward);
 			return true;
 		}
+		self.navigate(key)
+	}
+
+	/// Moves the selection as the arrow, Home, End, Page Up or Page Down key `key` would, firing
+	/// `on_selection_changed` if it moved. Works whether or not the list has focus, which is what
+	/// lets global shortcuts move through a timeline while the window is hidden.
+	///
+	/// Returns whether `key` is one of those keys, not whether the selection moved.
+	pub fn navigate(&self, key: i32) -> bool {
 		let state_rc = { self.inner.borrow().state.clone() };
 		let mut state = state_rc.borrow_mut();
 		if state.entries.is_empty() {
@@ -280,6 +289,17 @@ impl TimelineList {
 			}
 		}
 		true
+	}
+
+	/// The text of the selected entry, as the list shows it.
+	pub fn selected_text(&self) -> Option<String> {
+		let state_rc = { self.inner.borrow().state.clone() };
+		let state = state_rc.borrow();
+		state.selected_index.and_then(|idx| state.entries.get(idx)).map(|(_, text)| text.clone())
+	}
+
+	pub fn has_focus(&self) -> bool {
+		self.panel.has_focus()
 	}
 
 	pub fn get_selection(&self) -> Option<i32> {
@@ -548,7 +568,13 @@ impl TimelineList {
 		}
 	}
 
+	/// Speaks `text` through this list's live region, or through prism when no Fedra window is
+	/// in the foreground, since a live region in a hidden or background window goes unheard.
 	pub fn announce(&self, text: &str) {
+		if !crate::speech::fedra_in_foreground() {
+			crate::speech::speak(text);
+			return;
+		}
 		let state_rc = { self.inner.borrow().state.clone() };
 		let mut state = state_rc.borrow_mut();
 		let mut new_text = text.to_string();

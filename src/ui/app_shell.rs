@@ -1,43 +1,49 @@
-use std::{
-	cell::{Cell, RefCell},
-	rc::Rc,
-	sync::mpsc,
-	thread::{self, JoinHandle},
-};
+use std::cell::{Cell, RefCell};
 
+use wx_utils::global_hotkeys::GlobalHotkeys;
 use wxdragon::prelude::*;
 
-use crate::{ID_TRAY_EXIT, ID_TRAY_TOGGLE, UiCommand, config::HotkeyConfig, ui_wake::UiCommandSender};
-
-#[cfg(target_os = "windows")]
-pub struct HotkeyHandle {
-	pub(crate) thread_id: u32,
-	pub(crate) join_handle: JoinHandle<()>,
-}
+use crate::{
+	ID_TRAY_EXIT, ID_TRAY_TOGGLE, UiCommand,
+	config::{GlobalAction, GlobalShortcuts, KeyChord},
+	ui_wake::UiCommandSender,
+};
 
 pub struct AppShell {
 	pub(crate) tray_menu: RefCell<Option<Menu>>,
 	pub(crate) taskbar: TaskBarIcon,
-	#[cfg(target_os = "windows")]
-	pub(crate) hotkey_handle: Rc<RefCell<Option<HotkeyHandle>>>,
+	hotkeys: RefCell<Option<GlobalHotkeys>>,
 }
 
 impl AppShell {
-	#[cfg(target_os = "windows")]
-	pub fn re_register_hotkey(&self, ui_tx: UiCommandSender, hotkey: &HotkeyConfig) {
-		use windows::Win32::{
-			Foundation::{LPARAM, WPARAM},
-			UI::WindowsAndMessaging::{PostThreadMessageW, WM_QUIT},
-		};
-		if let Some(handle) = self.hotkey_handle.borrow_mut().take() {
-			if handle.thread_id != 0 {
-				unsafe {
-					let _ = PostThreadMessageW(handle.thread_id, WM_QUIT, WPARAM(0), LPARAM(0));
-				}
-			}
-			let _ = handle.join_handle.join();
+	/// Registers the global shortcuts, replacing any registered before.
+	///
+	/// Showing and hiding the window is always registered, and the rest only when `global_keys`
+	/// is on: the key that brings a hidden window back is not one you can do without.
+	///
+	/// Returns the chords that couldn't be registered, nearly always because another program
+	/// holds them, so the caller can say so rather than leave a key that silently does nothing.
+	pub fn register_hotkeys(
+		&self,
+		ui_tx: UiCommandSender,
+		shortcuts: &GlobalShortcuts,
+		global_keys: bool,
+	) -> Vec<String> {
+		// A chord this process still holds can't be registered a second time.
+		*self.hotkeys.borrow_mut() = None;
+		let bindings: Vec<_> = GlobalAction::all()
+			.iter()
+			.filter(|&&action| global_keys || action == GlobalAction::ToggleWindow)
+			.filter_map(|&action| shortcuts.get_chord(action).map(|chord| (chord, action)))
+			.collect();
+		if bindings.is_empty() {
+			return Vec::new();
 		}
-		*self.hotkey_handle.borrow_mut() = start_hotkey_listener(ui_tx, hotkey);
+		let (running, failed) = GlobalHotkeys::register(bindings, move |action| {
+			let _ = ui_tx.send(UiCommand::Global(action));
+		});
+		*self.hotkeys.borrow_mut() = running;
+		failed.iter().map(KeyChord::to_shortcut_string).collect()
 	}
 
 	/// Clean up the tray icon and hotkey thread. Safe to call multiple times.
@@ -49,25 +55,16 @@ impl AppShell {
 			menu.destroy_menu();
 		}
 		self.taskbar.destroy();
-		#[cfg(target_os = "windows")]
-		if let Some(handle) = self.hotkey_handle.borrow_mut().take() {
-			use windows::Win32::{
-				Foundation::{LPARAM, WPARAM},
-				UI::WindowsAndMessaging::{PostThreadMessageW, WM_QUIT},
-			};
-			if handle.thread_id != 0 {
-				unsafe {
-					let _ = PostThreadMessageW(handle.thread_id, WM_QUIT, WPARAM(0), LPARAM(0));
-				}
-			}
-			// Don't join — the thread will exit on its own after processing WM_QUIT.
-			// Blocking here during close can hang the UI thread.
-			drop(handle.join_handle);
+		// Leaked rather than dropped: dropping waits for the hotkey thread, and blocking here
+		// during close can hang the UI thread. The process is exiting, and Windows releases its
+		// hotkeys when it does.
+		if let Some(hotkeys) = self.hotkeys.borrow_mut().take() {
+			std::mem::forget(hotkeys);
 		}
 	}
 }
 
-pub fn install_app_shell(_frame: &Frame, ui_tx: UiCommandSender, hotkey: &HotkeyConfig) -> AppShell {
+pub fn install_app_shell(_frame: &Frame, ui_tx: UiCommandSender) -> AppShell {
 	let mut tray_menu = Menu::builder()
 		.append_item(ID_TRAY_TOGGLE, "Show/Hide", "Show or hide Fedra")
 		.append_separator()
@@ -81,24 +78,16 @@ pub fn install_app_shell(_frame: &Frame, ui_tx: UiCommandSender, hotkey: &Hotkey
 	} else if let Some(fallback) = Bitmap::new(16, 16) {
 		let _ = taskbar.set_icon(&fallback, "Fedra");
 	}
-	let ui_tx_tray = ui_tx.clone();
 	taskbar.on_menu(move |event| match event.get_id() {
 		ID_TRAY_TOGGLE => {
-			let _ = ui_tx_tray.send(UiCommand::ToggleWindowVisibility);
+			let _ = ui_tx.send(UiCommand::ToggleWindowVisibility);
 		}
 		ID_TRAY_EXIT => {
-			let _ = ui_tx_tray.send(UiCommand::ExitApp);
+			let _ = ui_tx.send(UiCommand::ExitApp);
 		}
 		_ => {}
 	});
-	#[cfg(target_os = "windows")]
-	let hotkey_handle = Rc::new(RefCell::new(start_hotkey_listener(ui_tx, hotkey)));
-	AppShell {
-		tray_menu: RefCell::new(Some(tray_menu)),
-		taskbar,
-		#[cfg(target_os = "windows")]
-		hotkey_handle,
-	}
+	AppShell { tray_menu: RefCell::new(Some(tray_menu)), taskbar, hotkeys: RefCell::new(None) }
 }
 
 pub fn toggle_window_visibility(frame: &Frame, tray_hidden: &Cell<bool>) {
@@ -122,7 +111,7 @@ pub fn toggle_window_visibility(frame: &Frame, tray_hidden: &Cell<bool>) {
 	}
 }
 
-fn is_window_active(frame: &Frame) -> bool {
+pub fn is_window_active(frame: &Frame) -> bool {
 	#[cfg(target_os = "windows")]
 	{
 		use windows::Win32::{Foundation::HWND, UI::WindowsAndMessaging::GetForegroundWindow};
@@ -138,66 +127,4 @@ fn is_window_active(frame: &Frame) -> bool {
 	{
 		frame.has_focus()
 	}
-}
-
-#[cfg(target_os = "windows")]
-pub fn start_hotkey_listener(ui_tx: UiCommandSender, hotkey: &HotkeyConfig) -> Option<HotkeyHandle> {
-	use windows::Win32::{
-		System::Threading::GetCurrentThreadId,
-		UI::{
-			Input::KeyboardAndMouse::{
-				HOT_KEY_MODIFIERS, MOD_ALT, MOD_CONTROL, MOD_SHIFT, MOD_WIN, RegisterHotKey, UnregisterHotKey,
-			},
-			WindowsAndMessaging::{GetMessageW, MSG, WM_HOTKEY},
-		},
-	};
-	const HOTKEY_ID: i32 = 1;
-	let mut modifiers = HOT_KEY_MODIFIERS(0);
-	if hotkey.ctrl {
-		modifiers |= MOD_CONTROL;
-	}
-	if hotkey.alt {
-		modifiers |= MOD_ALT;
-	}
-	if hotkey.shift {
-		modifiers |= MOD_SHIFT;
-	}
-	if hotkey.win {
-		modifiers |= MOD_WIN;
-	}
-	let vk = char_to_vk(hotkey.key)?;
-	let (thread_id_tx, thread_id_rx) = mpsc::channel();
-	let join_handle = thread::spawn(move || {
-		let thread_id = unsafe { GetCurrentThreadId() };
-		let _ = thread_id_tx.send(thread_id);
-		let registered = unsafe { RegisterHotKey(None, HOTKEY_ID, modifiers, vk).is_ok() };
-		if !registered {
-			return;
-		}
-		let mut msg = MSG::default();
-		loop {
-			let result = unsafe { GetMessageW(&raw mut msg, None, 0, 0) };
-			if result.0 <= 0 {
-				break;
-			}
-			if msg.message == WM_HOTKEY {
-				let _ = ui_tx.send(UiCommand::ToggleWindowVisibility);
-			}
-		}
-		unsafe {
-			let _ = UnregisterHotKey(None, HOTKEY_ID);
-		}
-	});
-	let thread_id = thread_id_rx.recv().ok()?;
-	Some(HotkeyHandle { thread_id, join_handle })
-}
-
-#[cfg(target_os = "windows")]
-fn char_to_vk(ch: char) -> Option<u32> {
-	use windows::Win32::UI::Input::KeyboardAndMouse::VkKeyScanW;
-	let code = u16::try_from(u32::from(ch)).ok()?;
-	let result = unsafe { VkKeyScanW(code) };
-	// VkKeyScanW returns -1 in the low byte on failure
-	let low_byte = u8::try_from(result & 0xFF).ok()?;
-	if low_byte == 0xFF { None } else { Some(u32::from(low_byte)) }
 }

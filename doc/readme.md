@@ -33,7 +33,7 @@ Windows 10 or 11
 - Client-side timeline filters, plus management of server-side Mastodon filters.
 - Mastodon list management (create, edit, delete, and change membership) and list timelines.
 - Customizable timeline entry and window title templates.
-- Tray integration and a global hotkey to show/hide the main window.
+- Tray integration, and global shortcuts that let you read and act on your timelines from anywhere, even with the main window hidden.
 - Optional update checks at startup plus manual update checks, on either the stable or development channel.
 
 ## Main Window Layout
@@ -82,8 +82,8 @@ Streaming timelines update themselves. `F5` refreshes the current timeline at an
 - Fedra runs with a tray icon menu:
   - `Show/Hide`
   - `Exit`
-- A global hotkey toggles the main window (default: `Ctrl+Alt+F`).
-- You can customize the global hotkey in `Options -> General -> Customize Window Hotkey...`.
+- A global shortcut shows and hides the main window (default: `Ctrl+Alt+F`). You can change it on the **Global** tab of `Options -> General -> Customize Keyboard Shortcuts...`.
+- More global shortcuts let you use Fedra without its window. See [Global shortcuts](#global-shortcuts).
 
 ## Composing Posts
 `Ctrl+N` opens the compose dialog; `Ctrl+R`, `Ctrl+Shift+R`, `Ctrl+Q`, and `Ctrl+E` open it for a reply, an author-only reply, a quote, and an edit respectively. Every control has an access key, and the dialog title shows the character count for your instance's limit. You can type past the limit, but you will hear a warning sound when you do.
@@ -128,8 +128,8 @@ Open options with `Ctrl+,`.
   - Edited posts
   - New posts
   - Moderation and admin
+- `Use global shortcuts to control Fedra from anywhere`: turns the [global shortcuts](#global-shortcuts) on or off. The show and hide shortcut always works, so you can't lose a hidden window.
 - `Customize Keyboard Shortcuts...`
-- `Customize Window Hotkey...` (Ctrl/Alt/Shift/Win modifiers + custom key)
 
 ### Timeline Tab
 - `Restore open timelines on startup` (when off, only your default timelines are reopened)
@@ -239,8 +239,32 @@ These are built into the lists and cannot be customized:
 - `1`..`9`: Switch to timeline 1-9 (Quick Action Keys mode only)
 - `Shift+F10` or the applications key: Open the actions menu for the focused post, or for the focused user in the followers/following dialogs
 
-### Global
-- `Ctrl+Alt+F`: Show/hide the main window (global hotkey; customizable in Options)
+### Global shortcuts
+Global shortcuts work from any program, whether Fedra's window is shown, hidden, or behind other windows. Moving through posts reads each one aloud, through your screen reader when one is running. You can change or clear any of them on the **Global** tab of Customize Keyboard Shortcuts, and turn them all off in Options, except show and hide.
+
+The defaults follow TWBlue's Windows 11 keymap:
+
+| Action | Default |
+|---|---|
+| Show or hide window | `Ctrl+Alt+F` |
+| Previous post | `Ctrl+Alt+Win+Up` |
+| Next post | `Ctrl+Alt+Win+Down` |
+| First post | `Ctrl+Alt+Win+Home` |
+| Last post | `Ctrl+Alt+Win+End` |
+| Read current post | `Ctrl+Alt+Win+Space` |
+| Previous timeline | `Ctrl+Alt+Win+Left` |
+| Next timeline | `Ctrl+Alt+Win+Right` |
+| Load more posts | `Alt+Win+Page Up` |
+| New post | `Alt+Win+N` |
+| Reply | `Ctrl+Win+R` |
+| Favorite | `Ctrl+Alt+Win+F` |
+| Boost | `Alt+Shift+Win+R` |
+| View post | `Alt+Win+V` |
+| Open links | `Alt+Win+Enter` |
+| Open in browser | `Ctrl+Alt+Win+Enter` |
+| Play media | `Alt+Shift+Win+Enter` |
+
+If another program already uses one of these, Fedra says so when it starts, and that shortcut does nothing until you change it.
 
 ### Default Bindings
 

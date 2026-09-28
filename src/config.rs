@@ -55,8 +55,13 @@ pub struct Config {
 	pub check_for_updates_on_startup: bool,
 	#[serde(default)]
 	pub update_channel: UpdateChannel,
-	#[serde(default)]
-	pub hotkey: HotkeyConfig,
+	/// The old single show/hide hotkey, from before it became the `ToggleWindow` global
+	/// shortcut. Only read so `ConfigStore::load` can carry a customized one over.
+	#[serde(default, rename = "hotkey", skip_serializing)]
+	legacy_hotkey: Option<HotkeyConfig>,
+	/// Whether the global shortcuts other than showing and hiding the window are registered.
+	#[serde(default = "default_true")]
+	pub global_keys: bool,
 	#[serde(default = "default_strip_tracking")]
 	pub strip_tracking: bool,
 	#[serde(default)]
@@ -573,12 +578,138 @@ impl ModeShortcuts {
 	}
 }
 
+/// A system-wide shortcut: one that works whether or not Fedra's window is shown or focused.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum GlobalAction {
+	ToggleWindow,
+	PreviousPost,
+	NextPost,
+	FirstPost,
+	LastPost,
+	ReadPost,
+	PreviousTimeline,
+	NextTimeline,
+	LoadMore,
+	NewPost,
+	Reply,
+	Favorite,
+	Boost,
+	ViewPost,
+	OpenLinks,
+	ViewInBrowser,
+	PlayMedia,
+}
+
+impl GlobalAction {
+	pub const fn all() -> &'static [Self] {
+		&[
+			Self::ToggleWindow,
+			Self::PreviousPost,
+			Self::NextPost,
+			Self::FirstPost,
+			Self::LastPost,
+			Self::ReadPost,
+			Self::PreviousTimeline,
+			Self::NextTimeline,
+			Self::LoadMore,
+			Self::NewPost,
+			Self::Reply,
+			Self::Favorite,
+			Self::Boost,
+			Self::ViewPost,
+			Self::OpenLinks,
+			Self::ViewInBrowser,
+			Self::PlayMedia,
+		]
+	}
+
+	pub const fn display_name(self) -> &'static str {
+		match self {
+			Self::ToggleWindow => "Show or hide window",
+			Self::PreviousPost => "Previous post",
+			Self::NextPost => "Next post",
+			Self::FirstPost => "First post",
+			Self::LastPost => "Last post",
+			Self::ReadPost => "Read current post",
+			Self::PreviousTimeline => "Previous timeline",
+			Self::NextTimeline => "Next timeline",
+			Self::LoadMore => "Load more posts",
+			Self::NewPost => "New post",
+			Self::Reply => "Reply",
+			Self::Favorite => "Favorite",
+			Self::Boost => "Boost",
+			Self::ViewPost => "View post",
+			Self::OpenLinks => "Open links",
+			Self::ViewInBrowser => "Open in browser",
+			Self::PlayMedia => "Play media",
+		}
+	}
+
+	/// Defaults follow `TWBlue`'s Windows 11 keymap, so they're what many screen reader users
+	/// already know: Ctrl+Alt+Win to move around, Alt+Win or Ctrl+Win for actions.
+	pub fn default_chord(self) -> KeyChord {
+		let ctrl_alt_win = |key: &str| KeyChord::new(true, true, false, key).with_win(true);
+		let alt_win = |key: &str| KeyChord::new(false, true, false, key).with_win(true);
+		match self {
+			// The show/hide hotkey Fedra has always had.
+			Self::ToggleWindow => KeyChord::new(true, true, false, "F"),
+			Self::PreviousPost => ctrl_alt_win("Up"),
+			Self::NextPost => ctrl_alt_win("Down"),
+			Self::FirstPost => ctrl_alt_win("Home"),
+			Self::LastPost => ctrl_alt_win("End"),
+			Self::ReadPost => ctrl_alt_win("Space"),
+			Self::PreviousTimeline => ctrl_alt_win("Left"),
+			Self::NextTimeline => ctrl_alt_win("Right"),
+			Self::LoadMore => alt_win("PageUp"),
+			Self::NewPost => alt_win("N"),
+			Self::Reply => KeyChord::new(true, false, false, "R").with_win(true),
+			Self::Favorite => ctrl_alt_win("F"),
+			Self::Boost => KeyChord::new(false, true, true, "R").with_win(true),
+			Self::ViewPost => alt_win("V"),
+			Self::OpenLinks => alt_win("Enter"),
+			Self::ViewInBrowser => ctrl_alt_win("Enter"),
+			Self::PlayMedia => KeyChord::new(false, true, true, "Enter").with_win(true),
+		}
+	}
+}
+
+/// The global keymap. An action missing from `bindings` is on its default; one mapped to `None`
+/// was unbound on purpose.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct GlobalShortcuts {
+	#[serde(default)]
+	pub bindings: HashMap<GlobalAction, Option<String>>,
+}
+
+impl GlobalShortcuts {
+	pub fn get_chord(&self, action: GlobalAction) -> Option<KeyChord> {
+		self.bindings
+			.get(&action)
+			.map_or_else(|| Some(action.default_chord()), |entry| entry.as_ref().and_then(|s| KeyChord::parse(s)))
+	}
+
+	pub fn set_chord(&mut self, action: GlobalAction, chord: Option<KeyChord>) {
+		self.bindings.insert(action, chord.map(|c| c.to_shortcut_string()));
+	}
+
+	pub fn reset_action(&mut self, action: GlobalAction) {
+		self.bindings.remove(&action);
+	}
+
+	pub fn reset_all(&mut self) {
+		self.bindings.clear();
+	}
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct ShortcutsConfig {
 	#[serde(default)]
 	pub normal: ModeShortcuts,
 	#[serde(default)]
 	pub quick_keys: ModeShortcuts,
+	#[serde(default)]
+	pub global: GlobalShortcuts,
 }
 
 impl ShortcutsConfig {
@@ -821,6 +952,19 @@ const fn default_fetch_limit() -> u8 {
 }
 
 impl Config {
+	/// Carries a customized show/hide hotkey over to the `ToggleWindow` global shortcut.
+	fn migrate_legacy_hotkey(mut self) -> Self {
+		if let Some(hotkey) = self.legacy_hotkey.take()
+			&& hotkey != HotkeyConfig::default()
+			&& !self.shortcuts.global.bindings.contains_key(&GlobalAction::ToggleWindow)
+		{
+			let chord =
+				KeyChord::new(hotkey.ctrl, hotkey.alt, hotkey.shift, hotkey.key.to_string()).with_win(hotkey.win);
+			self.shortcuts.global.set_chord(GlobalAction::ToggleWindow, Some(chord));
+		}
+		self
+	}
+
 	fn migrate_legacy_timelines(mut self) -> Self {
 		if self.legacy_saved_timelines.is_empty() {
 			return self;
@@ -862,7 +1006,8 @@ impl Default for Config {
 			disabled_notification_types: Vec::new(),
 			check_for_updates_on_startup: true,
 			update_channel: UpdateChannel::default(),
-			hotkey: HotkeyConfig::default(),
+			legacy_hotkey: None,
+			global_keys: true,
 			strip_tracking: true,
 			templates: PostTemplates::default(),
 			filters: TimelineFilters::default(),
@@ -935,9 +1080,9 @@ impl ConfigStore {
 
 	pub fn load(&self) -> Config {
 		match fs::read_to_string(&self.path) {
-			Ok(contents) => {
-				serde_json::from_str::<Config>(&contents).map(Config::migrate_legacy_timelines).unwrap_or_default()
-			}
+			Ok(contents) => serde_json::from_str::<Config>(&contents)
+				.map(|config| config.migrate_legacy_timelines().migrate_legacy_hotkey())
+				.unwrap_or_default(),
 			Err(err) if err.kind() == io::ErrorKind::NotFound => Config::default(),
 			Err(_) => Config::default(),
 		}
@@ -1014,6 +1159,35 @@ fn new_account_id() -> String {
 #[cfg(test)]
 mod tests {
 	use super::*;
+
+	#[test]
+	fn every_default_global_chord_has_a_modifier_and_is_unique() {
+		let chords: Vec<KeyChord> = GlobalAction::all().iter().map(|action| action.default_chord()).collect();
+		for (i, chord) in chords.iter().enumerate() {
+			// The shortcuts dialog refuses a global chord without one, so a default can't lack it.
+			assert!(chord.ctrl || chord.alt || chord.win, "{}", chord.to_shortcut_string());
+			assert!(
+				!chords[i + 1..].iter().any(|other| other.conflicts_with(chord)),
+				"{} is a default twice",
+				chord.to_shortcut_string()
+			);
+		}
+	}
+
+	#[test]
+	fn a_customized_old_hotkey_becomes_the_toggle_window_shortcut() {
+		let json = r#"{"version":1,"accounts":[],"active_account_id":null,"hotkey":{"ctrl":false,"alt":true,"shift":true,"win":true,"key":"M"}}"#;
+		let config = serde_json::from_str::<Config>(json).unwrap().migrate_legacy_hotkey();
+		let chord = config.shortcuts.global.get_chord(GlobalAction::ToggleWindow).unwrap();
+		assert_eq!(chord.to_shortcut_string(), "Alt+Shift+Win+M");
+	}
+
+	#[test]
+	fn the_old_default_hotkey_leaves_the_new_default_alone() {
+		let json = r#"{"version":1,"accounts":[],"active_account_id":null,"hotkey":{"ctrl":true,"alt":true,"shift":false,"win":false,"key":"F"}}"#;
+		let config = serde_json::from_str::<Config>(json).unwrap().migrate_legacy_hotkey();
+		assert!(!config.shortcuts.global.bindings.contains_key(&GlobalAction::ToggleWindow));
+	}
 
 	#[test]
 	fn test_key_chord_to_string_and_from_str() {
