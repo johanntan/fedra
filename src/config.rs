@@ -63,7 +63,7 @@ pub struct Config {
 	#[serde(default, rename = "hotkey", skip_serializing)]
 	legacy_hotkey: Option<HotkeyConfig>,
 	/// Whether the global shortcuts other than showing and hiding the window are registered.
-	#[serde(default = "default_true")]
+	#[serde(default)]
 	pub global_keys: bool,
 	#[serde(default = "default_strip_tracking")]
 	pub strip_tracking: bool,
@@ -1056,7 +1056,7 @@ impl Default for Config {
 			check_for_updates_on_startup: true,
 			update_channel: UpdateChannel::default(),
 			legacy_hotkey: None,
-			global_keys: true,
+			global_keys: false,
 			strip_tracking: true,
 			templates: PostTemplates::default(),
 			filters: TimelineFilters::default(),
