@@ -25,7 +25,7 @@ pub(super) fn paging_max_id(entries: &[TimelineEntry]) -> Option<String> {
 }
 
 /// Gets the currently selected timeline entry.
-pub(super) fn get_selected_entry(state: &AppState) -> Option<&TimelineEntry> {
+pub fn get_selected_entry(state: &AppState) -> Option<&TimelineEntry> {
 	let timeline = state.timeline_manager.active()?;
 	let index = timeline.selected_index?;
 	let effective_sort_order =

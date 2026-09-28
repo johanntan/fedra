@@ -28,6 +28,15 @@ pub fn speak(text: &str) {
 	});
 }
 
+/// Speaks `text` after whatever is being said, so it doesn't cut off the echo of a key just typed.
+pub fn speak_queued(text: &str) {
+	BACKEND.with(|backend| {
+		if let Some(backend) = backend {
+			let _ = backend.speak(text, false);
+		}
+	});
+}
+
 /// Whether the foreground window belongs to Fedra: the main window or one of its dialogs.
 pub fn fedra_in_foreground() -> bool {
 	use windows::Win32::{

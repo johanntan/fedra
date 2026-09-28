@@ -17,6 +17,17 @@ impl MastodonClient {
 		self.get_json(access_token, url, "lookup account")
 	}
 
+	/// Accounts matching `query`, as the web composer asks while an @mention is typed: only
+	/// ones the instance already knows about, since resolving remote handles is too slow for that.
+	pub fn search_accounts(&self, access_token: &str, query: &str, limit: u32) -> Result<Vec<Account>> {
+		let mut url = self.base_url.join("api/v1/accounts/search")?;
+		url.query_pairs_mut()
+			.append_pair("q", query)
+			.append_pair("resolve", "false")
+			.append_pair("limit", &limit.to_string());
+		self.get_json(access_token, url, "search accounts")
+	}
+
 	fn fetch_accounts_page(
 		&self,
 		base_url: Url,

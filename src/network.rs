@@ -699,8 +699,7 @@ fn network_loop(
 					_ => {
 						let mut statuses = Vec::new();
 						if let TimelineType::User { ref id, .. } = timeline_type
-							&& max_id.is_none()
-							&& let Ok(mut pinned) = client.get_pinned_statuses(access_token, id)
+							&& max_id.is_none() && let Ok(mut pinned) = client.get_pinned_statuses(access_token, id)
 						{
 							for p in &mut pinned {
 								p.pinned = true;

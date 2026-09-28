@@ -3,7 +3,10 @@ use std::{cell::RefCell, path::Path, rc::Rc};
 use chrono::{DateTime, Local, LocalResult, NaiveDate, NaiveTime, SecondsFormat, TimeZone, Utc};
 use wxdragon::{event::KeyboardEvent, prelude::*};
 
-use super::common::show_warning;
+use super::{
+	common::show_warning,
+	mentions::{MentionCompleter, MentionSource},
+};
 use crate::{
 	config::ContentWarningDisplay,
 	mastodon::{PollLimits, Status},
@@ -767,6 +770,7 @@ pub fn prompt_for_compose(
 	config: ComposeDialogConfig,
 	initial_media: Vec<PostMedia>,
 	initial_poll: Option<PostPoll>,
+	mention_source: MentionSource,
 ) -> Option<(PostResult, ComposeDialogConfig)> {
 	const ID_CUSTOM_SUBMIT: i32 = 26001;
 	let max_chars = max_chars.unwrap_or(DEFAULT_MAX_POST_CHARS);
@@ -795,6 +799,9 @@ pub fn prompt_for_compose(
 	}
 	let content_label = StaticText::builder(&panel).with_label("&What's on your mind?").build();
 	let content_text = TextCtrl::builder(&panel).with_style(TextCtrlStyle::MultiLine).build();
+	// Only for sighted users: focus stays in the text, and the highlighted suggestion is spoken.
+	let mention_list = ListBox::builder(&panel).build();
+	mention_list.set_min_size(Size::new(-1, 120));
 	let cw_checkbox = CheckBox::builder(&panel).with_label("&Content warning").build();
 	let cw_label = StaticText::builder(&panel).with_label("Warning text:").build();
 	let cw_text = TextCtrl::builder(&panel).build();
@@ -867,6 +874,7 @@ pub fn prompt_for_compose(
 	button_sizer.add(&cancel_button, 0, SizerFlag::Right, 8);
 	main_sizer.add(&content_label, 0, SizerFlag::Expand | SizerFlag::All, 8);
 	main_sizer.add(&content_text, 1, SizerFlag::Expand | SizerFlag::Left | SizerFlag::Right, 8);
+	main_sizer.add(&mention_list, 0, SizerFlag::Expand | SizerFlag::Left | SizerFlag::Right | SizerFlag::Top, 8);
 	main_sizer.add(&cw_checkbox, 0, SizerFlag::Expand | SizerFlag::All, 8);
 	main_sizer.add(&cw_label, 0, SizerFlag::Expand | SizerFlag::Left | SizerFlag::Right, 8);
 	main_sizer.add(&cw_text, 0, SizerFlag::Expand | SizerFlag::Left | SizerFlag::Right, 8);
@@ -897,6 +905,7 @@ pub fn prompt_for_compose(
 	dialog.set_sizer(dialog_sizer, true);
 	dialog.set_affirmative_id(ID_OK);
 	dialog.set_escape_id(ID_CANCEL);
+	let (mentions, mention_timer) = MentionCompleter::new(dialog, panel, content_text, mention_list, mention_source);
 	let media_items: Rc<RefCell<Vec<PostMedia>>> = Rc::new(RefCell::new(initial_media));
 	let sensitive_state: Rc<RefCell<bool>> = Rc::new(RefCell::new(config.initial_sensitive));
 	let media_items_manage = media_items.clone();
@@ -988,12 +997,14 @@ pub fn prompt_for_compose(
 	};
 	update_title();
 	let update_title_on_change = update_title;
+	let mentions_changed = mentions.clone();
 	content_text.on_text_changed(move |_| {
 		let current = content_text.get_value();
 		if current.chars().count() > max_chars {
 			bell();
 		}
 		update_title_on_change();
+		mentions_changed.refresh();
 	});
 	if let Some(cw) = initial_cw.as_deref().map(str::trim)
 		&& !cw.is_empty()
@@ -1025,8 +1036,20 @@ pub fn prompt_for_compose(
 	let dialog_enter = dialog;
 	let content_text_enter = content_text;
 	let title_prefix_enter = title_prefix.clone();
+	let content_text_mentions = content_text;
 	dialog.bind_internal(EventType::CHAR_HOOK, move |event| {
 		let key_event = KeyboardEvent::new(event);
+		// Up/Down, Enter, Tab and Escape belong to the mention suggestions while they're open.
+		if content_text_mentions.has_focus()
+			&& mentions.handle_key(
+				key_event.get_key_code(),
+				key_event.shift_down(),
+				key_event.control_down(),
+				key_event.alt_down(),
+			) {
+			key_event.event.skip(false);
+			return;
+		}
 		if key_event.get_key_code() == Some(keys::RETURN)
 			&& key_event.control_down()
 			&& !key_event.shift_down()
@@ -1083,6 +1106,7 @@ pub fn prompt_for_compose(
 		content_text.set_insertion_point_end();
 	}
 	let result = dialog.show_modal();
+	mention_timer.stop();
 	if result != ID_OK {
 		return None;
 	}
@@ -1128,6 +1152,7 @@ pub fn prompt_for_post(
 	poll_limits: &PollLimits,
 	enter_to_send: bool,
 	default_visibility: Option<PostVisibility>,
+	mention_source: MentionSource,
 ) -> Option<(PostResult, ComposeDialogConfig)> {
 	prompt_for_compose(
 		frame,
@@ -1150,6 +1175,7 @@ pub fn prompt_for_post(
 		},
 		Vec::new(),
 		None,
+		mention_source,
 	)
 }
 
@@ -1159,6 +1185,7 @@ pub fn prompt_for_direct_message(
 	max_chars: Option<usize>,
 	poll_limits: &PollLimits,
 	enter_to_send: bool,
+	mention_source: MentionSource,
 ) -> Option<(PostResult, ComposeDialogConfig)> {
 	let author = recipient.display_name_or_username();
 	prompt_for_compose(
@@ -1182,6 +1209,7 @@ pub fn prompt_for_direct_message(
 		},
 		Vec::new(),
 		None,
+		mention_source,
 	)
 }
 
@@ -1194,6 +1222,7 @@ pub fn prompt_for_reply(
 	self_acct: Option<&str>,
 	enter_to_send: bool,
 	initial_thread_mode: bool,
+	mention_source: MentionSource,
 ) -> Option<(PostResult, ComposeDialogConfig)> {
 	let author = replying_to.account.display_name_or_username();
 	let mention = if reply_all {
@@ -1250,6 +1279,7 @@ pub fn prompt_for_reply(
 		},
 		Vec::new(),
 		None,
+		mention_source,
 	)
 }
 
@@ -1260,6 +1290,7 @@ pub fn prompt_for_edit(
 	max_chars: Option<usize>,
 	poll_limits: &PollLimits,
 	enter_to_send: bool,
+	mention_source: MentionSource,
 ) -> Option<(PostResult, ComposeDialogConfig)> {
 	let default_visibility = match status.visibility.as_str() {
 		"unlisted" => PostVisibility::Unlisted,
@@ -1300,6 +1331,7 @@ pub fn prompt_for_edit(
 		},
 		initial_media,
 		initial_poll,
+		mention_source,
 	)
 }
 
@@ -1309,6 +1341,7 @@ pub fn prompt_for_quote(
 	max_chars: Option<usize>,
 	poll_limits: &PollLimits,
 	enter_to_send: bool,
+	mention_source: MentionSource,
 ) -> Option<(PostResult, ComposeDialogConfig)> {
 	let author = quoting.account.display_name_or_username();
 	let default_visibility = match quoting.visibility.as_str() {
@@ -1339,6 +1372,7 @@ pub fn prompt_for_quote(
 		},
 		Vec::new(),
 		None,
+		mention_source,
 	)
 }
 

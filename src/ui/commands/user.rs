@@ -8,7 +8,7 @@ use super::{
 };
 use crate::{
 	html,
-	mastodon::{Account, Status},
+	mastodon::Account,
 	network::NetworkCommand,
 	timeline::{TimelineEntry, TimelineType},
 	ui::dialogs,
@@ -250,68 +250,15 @@ pub(super) fn open_user_timeline_by_input(ctx: &mut UiCommandContext<'_>) {
 	let state = &mut *ctx.state;
 	let frame = ctx.frame;
 	let live_region = ctx.live_region;
-	let mut suggestions: Vec<String> = Vec::new();
-	let mut default_value: Option<String> = None;
-	let self_acct = state.active_account().and_then(|a| a.acct.as_deref()).map(|a| format!("@{a}"));
-	let mut push_unique = |suggestions: &mut Vec<String>, handle: String| {
-		if self_acct.as_deref() != Some(handle.as_str()) && !suggestions.contains(&handle) {
-			suggestions.push(handle);
-		}
-	};
-	let collect_status_users =
-		|suggestions: &mut Vec<String>, status: &Status, push_unique: &mut dyn FnMut(&mut Vec<String>, String)| {
-			push_unique(suggestions, format!("@{}", status.account.full_acct()));
-			if let Some(reblog) = &status.reblog {
-				push_unique(suggestions, format!("@{}", reblog.account.full_acct()));
-				for mention in &reblog.mentions {
-					push_unique(suggestions, format!("@{}", mention.full_acct()));
-				}
-			}
-			for mention in &status.mentions {
-				push_unique(suggestions, format!("@{}", mention.full_acct()));
-			}
-		};
-	if let Some(entry) = get_selected_entry(state) {
-		match entry {
-			TimelineEntry::Status(status) => {
-				default_value = Some(format!("@{}", status.account.full_acct()));
-				collect_status_users(&mut suggestions, status, &mut push_unique);
-			}
-			TimelineEntry::Notification(notification) => {
-				let handle = format!("@{}", notification.account.full_acct());
-				default_value = Some(handle.clone());
-				push_unique(&mut suggestions, handle);
-				if let Some(status) = &notification.status {
-					collect_status_users(&mut suggestions, status, &mut push_unique);
-				}
-			}
-			TimelineEntry::Account(account) => {
-				let handle = format!("@{}", account.full_acct());
-				default_value = Some(handle.clone());
-				push_unique(&mut suggestions, handle);
-			}
-			TimelineEntry::Hashtag(_) => {}
-		}
-	}
-	if let Some(active) = state.timeline_manager.active() {
-		for entry in &active.entries {
-			match entry {
-				TimelineEntry::Status(status) => {
-					collect_status_users(&mut suggestions, status, &mut push_unique);
-				}
-				TimelineEntry::Notification(notification) => {
-					push_unique(&mut suggestions, format!("@{}", notification.account.full_acct()));
-					if let Some(status) = &notification.status {
-						collect_status_users(&mut suggestions, status, &mut push_unique);
-					}
-				}
-				TimelineEntry::Account(account) => {
-					push_unique(&mut suggestions, format!("@{}", account.full_acct()));
-				}
-				TimelineEntry::Hashtag(_) => {}
-			}
-		}
-	}
+	let suggestions: Vec<String> =
+		dialogs::timeline_people(state).iter().map(|person| format!("@{}", person.acct)).collect();
+	let default_value = get_selected_entry(state).and_then(|entry| match entry {
+		TimelineEntry::Status(status) => Some(status.account.full_acct()),
+		TimelineEntry::Notification(notification) => Some(notification.account.full_acct()),
+		TimelineEntry::Account(account) => Some(account.full_acct()),
+		TimelineEntry::Hashtag(_) => None,
+	});
+	let default_value = default_value.map(|acct| format!("@{acct}"));
 	if let Some((input, action)) = dialogs::prompt_for_user_lookup(frame, &suggestions, default_value.as_deref()) {
 		let handle: String = input.chars().filter(|c| !c.is_whitespace()).collect();
 		if let Some(network) = &state.network_handle {
@@ -594,9 +541,14 @@ pub(super) fn send_direct_message(ctx: &mut UiCommandContext<'_>, account: Accou
 		live_region.announce("No account configured");
 		return;
 	}
-	let Some((post, config)) =
-		dialogs::prompt_for_direct_message(frame, &account, max_post_chars, &poll_limits, enter_to_send)
-	else {
+	let Some((post, config)) = dialogs::prompt_for_direct_message(
+		frame,
+		&account,
+		max_post_chars,
+		&poll_limits,
+		enter_to_send,
+		dialogs::MentionSource::from_state(state),
+	) else {
 		return;
 	};
 	if let Some(handle) = &state.network_handle {

@@ -24,7 +24,7 @@ mod user;
 use std::cell::Cell;
 
 pub use post::run_edit_post_dialog;
-pub use selection::get_selected_status;
+pub use selection::{get_selected_entry, get_selected_status};
 pub use settings::register_hotkeys;
 use url::Url;
 use wxdragon::prelude::*;

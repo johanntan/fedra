@@ -156,9 +156,15 @@ pub fn run_edit_post_dialog(
 ) {
 	let max_post_chars = state.max_post_chars;
 	let enter_to_send = state.config.enter_to_send;
-	let Some((edit, config)) =
-		dialogs::prompt_for_edit(frame, target, source_text, max_post_chars, &state.poll_limits, enter_to_send)
-	else {
+	let Some((edit, config)) = dialogs::prompt_for_edit(
+		frame,
+		target,
+		source_text,
+		max_post_chars,
+		&state.poll_limits,
+		enter_to_send,
+		dialogs::MentionSource::from_state(state),
+	) else {
 		return;
 	};
 	if let Some(handle) = &state.network_handle {
@@ -217,9 +223,14 @@ pub(super) fn new_post(ctx: &mut UiCommandContext<'_>) {
 			_ => None,
 		})
 	};
-	let Some((post, config)) =
-		dialogs::prompt_for_post(frame, max_post_chars, &poll_limits, enter_to_send, default_visibility)
-	else {
+	let Some((post, config)) = dialogs::prompt_for_post(
+		frame,
+		max_post_chars,
+		&poll_limits,
+		enter_to_send,
+		default_visibility,
+		dialogs::MentionSource::from_state(state),
+	) else {
 		return;
 	};
 	if let Some(handle) = &state.network_handle {
@@ -250,6 +261,7 @@ pub(super) fn continue_thread(ctx: &mut UiCommandContext<'_>, mut status: Box<St
 		self_acct,
 		enter_to_send,
 		true,
+		dialogs::MentionSource::from_state(state),
 	) else {
 		return;
 	};
@@ -299,6 +311,7 @@ pub(super) fn reply(ctx: &mut UiCommandContext<'_>, reply_all: bool) {
 		self_acct,
 		enter_to_send,
 		false,
+		dialogs::MentionSource::from_state(state),
 	) else {
 		return;
 	};
@@ -373,9 +386,14 @@ pub(super) fn prompt_for_quote(ctx: &mut UiCommandContext<'_>, target: Box<Statu
 		return;
 	}
 	let target_id = target.id.clone();
-	let Some((post, config)) =
-		dialogs::prompt_for_quote(frame, &target, state.max_post_chars, &state.poll_limits, state.config.enter_to_send)
-	else {
+	let Some((post, config)) = dialogs::prompt_for_quote(
+		frame,
+		&target,
+		state.max_post_chars,
+		&state.poll_limits,
+		state.config.enter_to_send,
+		dialogs::MentionSource::from_state(state),
+	) else {
 		return;
 	};
 	if let Some(handle) = &state.network_handle {
@@ -821,6 +839,7 @@ pub(super) fn recover_draft(ctx: &mut UiCommandContext<'_>) {
 		config,
 		pending.last_result.media,
 		pending.last_result.poll,
+		dialogs::MentionSource::from_state(state),
 	) else {
 		return;
 	};
