@@ -242,7 +242,7 @@ These are built into the lists and cannot be customized:
 ### Global shortcuts
 Global shortcuts work from any program, whether Fedra's window is shown, hidden, or behind other windows. Moving through posts reads each one aloud, through your screen reader when one is running, and switching timelines reads the timeline's name and the post you land on. Almost every action from the Normal and Quick Action Keys tabs is available as a global shortcut too. You can change, clear, or add any of them on the **Global** tab of Customize Keyboard Shortcuts, and turn them all off in Options, except show and hide.
 
-Each default is Fedra's own Normal mode shortcut for the same action with Ctrl, Alt, and Win added, so `Ctrl+P` for a profile becomes `Ctrl+Alt+Win+P`, and the arrows that move through the list become `Ctrl+Alt+Win` and an arrow. Show and hide keeps `Ctrl+Alt+F`. Actions not listed here, including Find, View Thread, Delete Post, and Exit, start with no global shortcut, because their keys would clash with another action or with Windows.
+Each default is Fedra's own Normal mode shortcut for the same action with Ctrl, Alt, and Win added, so `Ctrl+P` for a profile becomes `Ctrl+Alt+Win+P`, and the arrows that move through the list become `Ctrl+Alt+Win` and an arrow. Show and hide keeps `Ctrl+Alt+F`. Actions not listed here, including Find, View Thread, Delete Post, Open in Browser, and Exit, start with no global shortcut, because their keys would clash with another action or with Windows. `Ctrl+Alt+Shift+Win` is the Office key, so no default uses it with a letter that opens an Office app, such as O for Outlook.
 
 | Action | Default |
 |---|---|
@@ -264,7 +264,6 @@ Each default is Fedra's own Normal mode shortcut for the same action with Ctrl, 
 | View Hashtags | `Ctrl+Alt+Win+H` |
 | Open Links | `Ctrl+Alt+Win+Enter` |
 | Play Media | `Ctrl+Alt+Win+I` |
-| Open in Browser | `Ctrl+Alt+Shift+Win+O` |
 | Copy Post | `Ctrl+Alt+Shift+Win+C` |
 | Copy Post Link | `Ctrl+Alt+Win+C` |
 | View Post Details | `Ctrl+Alt+Shift+Win+Enter` |

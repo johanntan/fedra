@@ -687,13 +687,19 @@ impl GlobalAction {
 			// Exit would be Ctrl+Alt+Win+F4, too close to Windows' Ctrl+Win+F4. Find and View thread
 			// would land on Follow's and Open links' keys, and Delete on Ctrl+Alt+Delete.
 			Self::Exit | Self::Action(ActionId::Find | ActionId::ViewThread | ActionId::DeletePost) => None,
+			// Ctrl+Alt+Shift+Win is the Office key, and Windows opens an Office app for these letters.
 			Self::Action(action) => {
 				let chord = action.default_chord(false)?;
+				if chord.shift && OFFICE_KEYS.contains(&chord.key.as_str()) {
+					return None;
+				}
 				Some(KeyChord::new(true, true, chord.shift, &chord.key).with_win(true))
 			}
 		}
 	}
 }
+
+const OFFICE_KEYS: [&str; 10] = ["D", "L", "N", "O", "P", "T", "W", "X", "Y", "Space"];
 
 /// The global keymap, keyed by [`GlobalAction`]'s saved name. An action missing from `bindings`
 /// is on its default; one mapped to `None` was unbound on purpose.
@@ -1194,6 +1200,17 @@ mod tests {
 			assert!(
 				!chords[i + 1..].iter().any(|other| other.conflicts_with(chord)),
 				"{} is a default twice",
+				chord.to_shortcut_string()
+			);
+		}
+	}
+
+	#[test]
+	fn no_global_default_takes_an_office_key() {
+		for chord in GlobalAction::all().into_iter().filter_map(GlobalAction::default_chord) {
+			assert!(
+				!(chord.ctrl && chord.alt && chord.shift && chord.win && OFFICE_KEYS.contains(&chord.key.as_str())),
+				"{} opens an Office app",
 				chord.to_shortcut_string()
 			);
 		}
