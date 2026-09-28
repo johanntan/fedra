@@ -242,7 +242,7 @@ These are built into the lists and cannot be customized:
 ### Global shortcuts
 Global shortcuts work from any program, whether Fedra's window is shown, hidden, or behind other windows. Moving through posts reads each one aloud, through your screen reader when one is running, and switching timelines reads the timeline's name and the post you land on. Almost every action from the Normal and Quick Action Keys tabs is available as a global shortcut too. You can change, clear, or add any of them on the **Global** tab of Customize Keyboard Shortcuts, and turn them all off in Options, except show and hide.
 
-The defaults follow TWBlue's Windows 11 keymap. Actions not listed here start with no global shortcut.
+Each default is Fedra's own Normal mode shortcut for the same action with Ctrl, Alt, and Win added, so `Ctrl+P` for a profile becomes `Ctrl+Alt+Win+P`, and the arrows that move through the list become `Ctrl+Alt+Win` and an arrow. Show and hide keeps `Ctrl+Alt+F`. Actions not listed here, including Find, View Thread, Delete Post, and Exit, start with no global shortcut, because their keys would clash with another action or with Windows.
 
 | Action | Default |
 |---|---|
@@ -254,34 +254,46 @@ The defaults follow TWBlue's Windows 11 keymap. Actions not listed here start wi
 | Read current post | `Ctrl+Alt+Win+Space` |
 | Previous timeline | `Ctrl+Alt+Win+Left` |
 | Next timeline | `Ctrl+Alt+Win+Right` |
-| Previous account | `Ctrl+Alt+Shift+Win+Left` |
-| Next account | `Ctrl+Alt+Shift+Win+Right` |
-| New post | `Alt+Win+N` |
-| Reply | `Ctrl+Win+R` |
-| Boost | `Alt+Shift+Win+R` |
-| Favorite | `Ctrl+Alt+Win+F` |
-| Delete post | `Alt+Win+Delete` |
-| Copy post | `Alt+Shift+Win+C` |
-| View post | `Alt+Win+V` |
-| View thread | `Alt+Win+C` |
-| View profile | `Alt+Shift+Win+N` |
-| Follow or unfollow | `Alt+Shift+Win+S` |
-| Open user timeline | `Alt+Win+I` |
-| Close timeline | `Alt+Shift+Win+I` |
-| Open links | `Alt+Win+Enter` |
-| Open in browser | `Ctrl+Alt+Win+Enter` |
-| Play media | `Alt+Shift+Win+Enter` |
-| Vote | `Alt+Shift+Win+V` |
-| Search | `Alt+Win+-` |
-| Load more posts | `Alt+Win+Page Up` |
-| Refresh | `Ctrl+Alt+Shift+U` |
-| Open list | `Alt+Win+L` |
-| Manage lists | `Alt+Shift+Win+L` |
-| Edit profile | `Alt+Win+P` |
-| Options | `Ctrl+Alt+Win+O` |
-| Customize keyboard shortcuts | `Ctrl+Alt+Win+K` |
-| Check for updates | `Alt+Win+U` |
-| Exit | `Alt+Win+F4` |
+| New Post... | `Ctrl+Alt+Win+N` |
+| Reply... | `Ctrl+Alt+Win+R` |
+| Reply to Author... | `Ctrl+Alt+Shift+Win+R` |
+| Quote Post... | `Ctrl+Alt+Win+Q` |
+| Toggle Follow | `Ctrl+Alt+Win+F` |
+| View Author Profile | `Ctrl+Alt+Win+P` |
+| View Mentions | `Ctrl+Alt+Win+M` |
+| View Hashtags | `Ctrl+Alt+Win+H` |
+| Open Links | `Ctrl+Alt+Win+Enter` |
+| Play Media | `Ctrl+Alt+Win+I` |
+| Open in Browser | `Ctrl+Alt+Shift+Win+O` |
+| Copy Post | `Ctrl+Alt+Shift+Win+C` |
+| Copy Post Link | `Ctrl+Alt+Win+C` |
+| View Post Details | `Ctrl+Alt+Shift+Win+Enter` |
+| Edit Post... | `Ctrl+Alt+Win+E` |
+| Vote on Poll... | `Ctrl+Alt+Win+V` |
+| Favorite | `Ctrl+Alt+Shift+Win+F` |
+| Bookmark | `Ctrl+Alt+Shift+Win+K` |
+| Boost | `Ctrl+Alt+Shift+Win+B` |
+| Open User Timeline | `Ctrl+Alt+Win+T` |
+| Open User... | `Ctrl+Alt+Win+U` |
+| Search... | `Ctrl+Alt+Win+/` |
+| Find Next | `Ctrl+Alt+Win+F3` |
+| Find Previous | `Ctrl+Alt+Shift+Win+F3` |
+| Local Timeline | `Ctrl+Alt+Win+L` |
+| Open Instance Timeline... | `Ctrl+Alt+Shift+Win+I` |
+| Direct Messages | `Ctrl+Alt+Win+D` |
+| Mentions Timeline | `Ctrl+Alt+Shift+Win+M` |
+| Load More | `Ctrl+Alt+Win+.` |
+| Close Timeline | `Ctrl+Alt+Win+W` |
+| Refresh | `Ctrl+Alt+Win+F5` |
+| Move Timeline Left | `Ctrl+Alt+Shift+Win+Left` |
+| Move Timeline Right | `Ctrl+Alt+Shift+Win+Right` |
+| Previous Account | `Ctrl+Alt+Win+[` |
+| Next Account | `Ctrl+Alt+Win+]` |
+| Toggle Content Warning | `Ctrl+Alt+Win+X` |
+| Manage Accounts... | `Ctrl+Alt+Win+A` |
+| Edit Profile... | `Ctrl+Alt+Shift+Win+E` |
+| Options... | `Ctrl+Alt+Win+,` |
+| View Help | `Ctrl+Alt+Win+F1` |
 
 If another program already uses one of these, Fedra says so when it starts, and that shortcut does nothing until you change it.
 

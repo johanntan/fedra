@@ -669,55 +669,29 @@ impl GlobalAction {
 		slug.to_string()
 	}
 
-	/// Defaults follow `TWBlue`'s Windows 11 keymap where it has the same action, so they're what
-	/// many screen reader users already know. Actions it has no equivalent for start unbound.
+	/// Fedra's own shortcut for the same thing, in Normal mode, with Ctrl, Alt and Win added. So
+	/// Ctrl+P for a profile becomes Ctrl+Alt+Win+P, and the arrows that move through the list become
+	/// Ctrl+Alt+Win and an arrow.
 	pub fn default_chord(self) -> Option<KeyChord> {
-		let ctrl_alt_win = |key: &str| KeyChord::new(true, true, false, key).with_win(true);
-		let alt_win = |key: &str| KeyChord::new(false, true, false, key).with_win(true);
-		let alt_shift_win = |key: &str| KeyChord::new(false, true, true, key).with_win(true);
-		let ctrl_win = |key: &str| KeyChord::new(true, false, false, key).with_win(true);
-		Some(match self {
+		let global = |key: &str| KeyChord::new(true, true, false, key).with_win(true);
+		match self {
 			// The show/hide hotkey Fedra has always had.
-			Self::ToggleWindow => KeyChord::new(true, true, false, "F"),
-			Self::PreviousPost => ctrl_alt_win("Up"),
-			Self::NextPost => ctrl_alt_win("Down"),
-			Self::FirstPost => ctrl_alt_win("Home"),
-			Self::LastPost => ctrl_alt_win("End"),
-			Self::ReadPost => ctrl_alt_win("Space"),
-			Self::PreviousTimeline => ctrl_alt_win("Left"),
-			Self::NextTimeline => ctrl_alt_win("Right"),
-			Self::Exit => alt_win("F4"),
-			Self::Action(action) => match action {
-				ActionId::NewPost => alt_win("N"),
-				ActionId::Reply => ctrl_win("R"),
-				ActionId::Boost => alt_shift_win("R"),
-				ActionId::Favorite => ctrl_alt_win("F"),
-				ActionId::ViewPost => alt_win("V"),
-				ActionId::ViewThread => alt_win("C"),
-				ActionId::ViewProfile => alt_shift_win("N"),
-				ActionId::OpenUserTimeline => alt_win("I"),
-				ActionId::CloseTimeline => alt_shift_win("I"),
-				ActionId::ToggleFollow => alt_shift_win("S"),
-				ActionId::OpenLinks => alt_win("Enter"),
-				ActionId::ViewInBrowser => ctrl_alt_win("Enter"),
-				ActionId::PlayMedia => alt_shift_win("Enter"),
-				ActionId::CopyPost => alt_shift_win("C"),
-				ActionId::DeletePost => alt_win("Delete"),
-				ActionId::Vote => alt_shift_win("V"),
-				ActionId::Search => alt_win("-"),
-				ActionId::LoadMore => alt_win("PageUp"),
-				ActionId::Refresh => KeyChord::new(true, true, true, "U"),
-				ActionId::SwitchPrevAccount => KeyChord::new(true, true, true, "Left").with_win(true),
-				ActionId::SwitchNextAccount => KeyChord::new(true, true, true, "Right").with_win(true),
-				ActionId::OpenList => alt_win("L"),
-				ActionId::ManageLists => alt_shift_win("L"),
-				ActionId::EditProfile => alt_win("P"),
-				ActionId::Options => ctrl_alt_win("O"),
-				ActionId::CustomizeShortcuts => ctrl_alt_win("K"),
-				ActionId::CheckForUpdates => alt_win("U"),
-				_ => return None,
-			},
-		})
+			Self::ToggleWindow => Some(KeyChord::new(true, true, false, "F")),
+			Self::PreviousPost => Some(global("Up")),
+			Self::NextPost => Some(global("Down")),
+			Self::FirstPost => Some(global("Home")),
+			Self::LastPost => Some(global("End")),
+			Self::ReadPost => Some(global("Space")),
+			Self::PreviousTimeline => Some(global("Left")),
+			Self::NextTimeline => Some(global("Right")),
+			// Exit would be Ctrl+Alt+Win+F4, too close to Windows' Ctrl+Win+F4. Find and View thread
+			// would land on Follow's and Open links' keys, and Delete on Ctrl+Alt+Delete.
+			Self::Exit | Self::Action(ActionId::Find | ActionId::ViewThread | ActionId::DeletePost) => None,
+			Self::Action(action) => {
+				let chord = action.default_chord(false)?;
+				Some(KeyChord::new(true, true, chord.shift, &chord.key).with_win(true))
+			}
+		}
 	}
 }
 
