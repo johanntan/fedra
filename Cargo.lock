@@ -1263,8 +1263,7 @@ checksum = "11d3d7f243d5c5a8b9bb5d6dd2b1602c0cb0b9db1621bafc7ed66e35ff9fe092"
 [[package]]
 name = "live-region"
 version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "53e1659caf4b85ebb83b85de72dd1caa6ed352c88e8cd50ca30164aaf295dcee"
+source = "git+https://github.com/trypsynth/live-region#c7d637ea0ddbcb0d296097e6487d113fb4775ab1"
 dependencies = [
  "objc",
  "pkg-config",
@@ -2371,9 +2370,8 @@ dependencies = [
 
 [[package]]
 name = "ship-shape"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "20be0c0df76d3290384bd3271039638cb2af1069ee1a8ad119beea227887f357"
+version = "0.3.0"
+source = "git+https://github.com/trypsynth/ship-shape#d21c4742025f359149f80e02e9f5177c369e7ad9"
 dependencies = [
  "minisign-verify",
  "patois",
@@ -3512,8 +3510,7 @@ dependencies = [
 [[package]]
 name = "wxdragon"
 version = "0.9.22"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c35127e8548aed8ae04d163d359db1b520dad9f42f28ecf67bf0b27f7f47e63f"
+source = "git+https://github.com/AllenDang/wxDragon#82356530e28062b0909de96b6831a585cae7256c"
 dependencies = [
  "bitflags 2.13.2",
  "log",
@@ -3525,8 +3522,7 @@ dependencies = [
 [[package]]
 name = "wxdragon-macros"
 version = "0.9.22"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d14957ce8ba0c50e5686df98cde93e721caf329b22016cadd0d10d7f1172a432"
+source = "git+https://github.com/AllenDang/wxDragon#82356530e28062b0909de96b6831a585cae7256c"
 dependencies = [
  "proc-macro2",
  "quick-xml",
@@ -3537,8 +3533,7 @@ dependencies = [
 [[package]]
 name = "wxdragon-sys"
 version = "0.9.22"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3858369cb3c4611755ad643348f6d82063c0a3d8aae56b6a4479b46043e5eb1f"
+source = "git+https://github.com/AllenDang/wxDragon#82356530e28062b0909de96b6831a585cae7256c"
 dependencies = [
  "bindgen",
  "cmake",
