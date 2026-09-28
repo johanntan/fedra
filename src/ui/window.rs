@@ -33,12 +33,15 @@ pub fn build_main_window() -> WindowParts {
 	frame.set_menu_bar(menu_bar);
 	let panel = Panel::builder(&frame).build();
 	let sizer = BoxSizer::builder(Orientation::Horizontal).build();
-	let timelines_label = StaticText::builder(&panel).with_label("Timelines").build();
+	// NVDA names the list after the label created before it; VoiceOver doesn't, so it's only noise there.
+	let timelines_label = cfg!(windows).then(|| StaticText::builder(&panel).with_label("Timelines").build());
 	let timelines_selector = ListBox::builder(&panel).with_choices(vec!["Home".to_string()]).build();
 	timelines_selector.set_selection(0_u32, true);
 	let timeline_list = crate::ui::timeline_list::TimelineList::new(&panel);
 	let timelines_sizer = BoxSizer::builder(Orientation::Vertical).build();
-	timelines_sizer.add(&timelines_label, 0, SizerFlag::All, 8);
+	if let Some(timelines_label) = timelines_label {
+		timelines_sizer.add(&timelines_label, 0, SizerFlag::All, 8);
+	}
 	timelines_sizer.add(
 		&timelines_selector,
 		1,
