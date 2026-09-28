@@ -17,7 +17,10 @@ pub fn show_profile_edit_dialog(
 	scroll_win.set_scroll_rate(0, 10);
 	let content_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	let name_label = StaticText::builder(&scroll_win).with_label("Display Name").build();
-	let name_text = TextCtrl::builder(&scroll_win).with_value(current.display_name_or_username()).build();
+	let name_text = TextCtrl::builder(&scroll_win)
+		.with_value(current.display_name_or_username())
+		.with_size(Size::new(1, -1))
+		.build();
 	content_sizer.add(&name_label, 0, SizerFlag::All, 5);
 	content_sizer.add(&name_text, 0, SizerFlag::Expand | SizerFlag::Left | SizerFlag::Right, 5);
 	let note_label = StaticText::builder(&scroll_win).with_label("Bio").build();
@@ -72,12 +75,12 @@ pub fn show_profile_edit_dialog(
 		let content_lbl = format!("Field {} content", i + 1);
 		let field_sizer = BoxSizer::builder(Orientation::Vertical).build();
 		let title_text = StaticText::builder(&scroll_win).with_label(&title_lbl).build();
-		let name_ctrl = TextCtrl::builder(&scroll_win).with_value(&name_val).build();
+		let name_ctrl = TextCtrl::builder(&scroll_win).with_value(&name_val).with_size(Size::new(1, -1)).build();
 		field_sizer.add(&title_text, 0, SizerFlag::All, 2);
 		field_sizer.add(&name_ctrl, 0, SizerFlag::Expand | SizerFlag::All, 2);
 		let content_sizer_inner = BoxSizer::builder(Orientation::Vertical).build();
 		let content_text = StaticText::builder(&scroll_win).with_label(&content_lbl).build();
-		let val_ctrl = TextCtrl::builder(&scroll_win).with_value(&val_val).build();
+		let val_ctrl = TextCtrl::builder(&scroll_win).with_value(&val_val).with_size(Size::new(1, -1)).build();
 		content_sizer_inner.add(&content_text, 0, SizerFlag::All, 2);
 		content_sizer_inner.add(&val_ctrl, 0, SizerFlag::Expand | SizerFlag::All, 2);
 		row_sizer.add_sizer(&field_sizer, 1, SizerFlag::Expand, 0);
@@ -106,7 +109,10 @@ pub fn show_profile_edit_dialog(
 			content_sizer.add(&sensitive_cb, 0, SizerFlag::All, 5);
 			let lang_sizer = BoxSizer::builder(Orientation::Horizontal).build();
 			let lang_label = StaticText::builder(&scroll_win).with_label("Language:").build();
-			let lang_text = TextCtrl::builder(&scroll_win).with_value(source.language.as_deref().unwrap_or("")).build();
+			let lang_text = TextCtrl::builder(&scroll_win)
+				.with_value(source.language.as_deref().unwrap_or(""))
+				.with_size(Size::new(1, -1))
+				.build();
 			lang_sizer.add(&lang_label, 0, SizerFlag::AlignCenterVertical | SizerFlag::Right, 5);
 			lang_sizer.add(&lang_text, 1, SizerFlag::Expand, 0);
 			content_sizer.add_sizer(&lang_sizer, 0, SizerFlag::Expand | SizerFlag::All, 5);
