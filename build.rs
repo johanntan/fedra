@@ -1,43 +1,51 @@
 #![warn(clippy::all, clippy::pedantic, clippy::nursery)]
 
-use std::{
-	env, fs,
-	path::{Path, PathBuf},
-	process::Command,
-};
+use std::{env, path::Path};
 
-use embed_manifest::{
-	embed_manifest,
-	manifest::{
-		ActiveCodePage, DpiAwareness, HeapType, Setting,
-		SupportedOS::{Windows7, Windows10},
-	},
-	new_manifest,
+use shipfitter::{
+	build::{configure_file, embed_commit_info, pandoc, pandoc_available, target_profile_dir},
+	windows::{VersionInfo, embed_manifest},
 };
-use winres::WindowsResource;
 
 fn main() {
 	println!("cargo:rerun-if-changed=build.rs");
 	println!("cargo:rerun-if-changed=Cargo.toml");
-	println!("cargo:rerun-if-changed=fedra.iss.in");
 	println!("cargo:rerun-if-changed=sounds");
-	build_docs();
-	configure_installer();
-	embed_commit_hash();
-	let target = env::var("TARGET").unwrap_or_default();
-	if target.contains("windows") {
-		let manifest = new_manifest("Fedra")
-			.supported_os(Windows7..=Windows10)
-			.active_code_page(ActiveCodePage::Utf8)
-			.heap_type(HeapType::SegmentHeap)
-			.dpi_awareness(DpiAwareness::PerMonitorV2)
-			.long_path_aware(Setting::Enabled);
-		if let Err(e) = embed_manifest(manifest) {
-			println!("cargo:warning=Failed to embed manifest: {e}");
-			println!("cargo:warning=The application will still work but may lack optimal Windows theming");
+	embed_commit_info("FEDRA");
+	if let Some(target_dir) = target_profile_dir() {
+		build_docs(&target_dir);
+		if let Err(e) = configure_file(Path::new("fedra.iss.in"), &target_dir.join("fedra.iss"), &[]) {
+			println!("cargo:warning=Failed to configure the installer script: {e}");
 		}
-		embed_version_info();
+	}
+	if let Err(e) = embed_manifest("Fedra") {
+		println!("cargo:warning=Failed to embed manifest: {e}");
+	}
+	let version_info = VersionInfo {
+		product_name: "Fedra",
+		company: "Quin Gillespie",
+		copyright: "Copyright © 2026 Quin Gillespie",
+		original_filename: "fedra.exe",
+		..VersionInfo::default()
+	};
+	if let Err(e) = version_info.embed() {
+		println!("cargo:warning=Failed to embed version info: {e}");
+	}
+	if env::var("CARGO_CFG_TARGET_OS").is_ok_and(|os| os == "windows") {
 		delay_load_speech_dlls();
+	}
+}
+
+fn build_docs(target_dir: &Path) {
+	if !pandoc_available() {
+		println!("cargo:warning=Pandoc not found. Documentation will not be generated.");
+		return;
+	}
+	let doc_dir = Path::new("doc");
+	if let Err(e) =
+		pandoc(&doc_dir.join("readme.md"), &doc_dir.join("pandoc.yaml"), &target_dir.join("readme.html"), None)
+	{
+		println!("cargo:warning={e}");
 	}
 }
 
@@ -57,108 +65,5 @@ fn delay_load_speech_dlls() {
 	println!("cargo:rustc-link-arg=/IGNORE:4199");
 	for dll in dlls.split(';').filter(|dll| !dll.is_empty()) {
 		println!("cargo:rustc-link-arg=/DELAYLOAD:{dll}");
-	}
-}
-
-fn embed_commit_hash() {
-	let output = Command::new("git").args(["rev-parse", "HEAD"]).output();
-	let hash = match output {
-		Ok(o) if o.status.success() => String::from_utf8_lossy(&o.stdout).trim().to_string(),
-		_ => "unknown".to_string(),
-	};
-	println!("cargo:rustc-env=FEDRA_COMMIT_HASH={hash}");
-
-	// Force a rebuild if the commit changes
-	let git_dir = Path::new(".git");
-	if git_dir.exists() {
-		let head_path = git_dir.join("HEAD");
-		println!("cargo:rerun-if-changed={}", head_path.display());
-		if let Ok(head_content) = fs::read_to_string(&head_path)
-			&& let Some(ref_path) = head_content.trim().strip_prefix("ref: ")
-		{
-			let ref_full_path = git_dir.join(ref_path);
-			println!("cargo:rerun-if-changed={}", ref_full_path.display());
-		}
-	}
-}
-
-fn embed_version_info() {
-	let version = env::var("CARGO_PKG_VERSION").unwrap_or_else(|_| "0.0.0".to_string());
-	let mut res = WindowsResource::new();
-	res.set("ProductName", "Fedra")
-		.set("FileDescription", "Fedra")
-		.set("LegalCopyright", "Copyright © 2026 Quin Gillespie")
-		.set("CompanyName", "Quin Gillespie")
-		.set("OriginalFilename", "fedra.exe")
-		.set("ProductVersion", &version)
-		.set("FileVersion", &version);
-	if let Err(e) = res.compile() {
-		println!("cargo:warning=Failed to embed version info: {e}");
-	}
-}
-
-fn target_profile_dir() -> Option<PathBuf> {
-	let profile = env::var("PROFILE").ok()?;
-	if let Ok(target_dir) = env::var("CARGO_TARGET_DIR") {
-		let mut dir = PathBuf::from(target_dir);
-		dir.push(profile);
-		return Some(dir);
-	}
-	let out_dir = PathBuf::from(env::var("OUT_DIR").ok()?);
-	out_dir.ancestors().nth(3).map(Path::to_path_buf)
-}
-
-fn build_docs() {
-	let Some(target_dir) = target_profile_dir() else {
-		println!("cargo:warning=Could not determine target directory for docs.");
-		return;
-	};
-	let doc_dir = PathBuf::from("doc");
-	let readme = doc_dir.join("readme.md");
-	let config = doc_dir.join("pandoc.yaml");
-	println!("cargo:rerun-if-changed={}", readme.display());
-	println!("cargo:rerun-if-changed={}", config.display());
-	let pandoc_check = Command::new("pandoc").arg("--version").output();
-	if pandoc_check.is_err() {
-		println!("cargo:warning=Pandoc not found. Documentation will not be generated.");
-		return;
-	}
-	let output = target_dir.join("readme.html");
-	let status = Command::new("pandoc")
-		.arg(format!("--defaults={}", config.display()))
-		.arg(&readme)
-		.arg("-o")
-		.arg(&output)
-		.status();
-	match status {
-		Ok(s) if s.success() => {}
-		_ => println!("cargo:warning=Failed to generate documentation."),
-	}
-}
-
-fn configure_installer() {
-	let Some(target_dir) = target_profile_dir() else { return };
-	let input_path = PathBuf::from("fedra.iss.in");
-	if !input_path.exists() {
-		return;
-	}
-	let content = match fs::read_to_string(&input_path) {
-		Ok(c) => c,
-		Err(e) => {
-			println!("cargo:warning=Failed to read installer script: {e}");
-			return;
-		}
-	};
-	let version = env::var("CARGO_PKG_VERSION").unwrap_or_else(|_| "0.0.0".to_string());
-	let target = env::var("TARGET").unwrap_or_default();
-	let (arch_suffix, arch_iss) =
-		if target.starts_with("aarch64") { ("arm64", "arm64") } else { ("x64", "x64compatible") };
-	let new_content = content
-		.replace("@PROJECT_VERSION@", &version)
-		.replace("@ARCH_SUFFIX@", arch_suffix)
-		.replace("@ARCH_ISS@", arch_iss);
-	let output_path = target_dir.join("fedra.iss");
-	if let Err(e) = fs::write(&output_path, new_content) {
-		println!("cargo:warning=Failed to write installer script: {e}");
 	}
 }

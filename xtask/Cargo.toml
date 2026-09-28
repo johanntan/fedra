@@ -4,5 +4,4 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-walkdir = "2.5.0"
-zip = { version = "8.6.0", default-features = false, features = ["deflate"] }
+shipfitter = { git = "https://github.com/trypsynth/shipfitter", features = ["package"] }

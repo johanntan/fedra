@@ -46,8 +46,7 @@ live-region = "0.3.2"
 objc = "0.2.7"
 
 [build-dependencies]
-embed-manifest = "1.5.1"
-winres = "0.1.12"
+shipfitter = { git = "https://github.com/trypsynth/shipfitter", features = ["windows-resources"] }
 
 [patch.crates-io]
 live-region = { git = "https://github.com/trypsynth/live-region" }
