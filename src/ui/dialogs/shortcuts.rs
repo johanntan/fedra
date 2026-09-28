@@ -38,8 +38,13 @@ impl ModeShortcutsModel {
 impl ShortcutModel for ModeShortcutsModel {
 	type Action = Action;
 
+	/// Global shortcuts only exist on Windows, so the tab only shows there.
 	fn tabs(&self) -> Vec<String> {
-		vec!["Quick Keys Mode".to_string(), "Normal Mode".to_string(), "Global".to_string()]
+		let mut tabs = vec!["Quick Keys Mode".to_string(), "Normal Mode".to_string()];
+		if cfg!(windows) {
+			tabs.push("Global".to_string());
+		}
+		tabs
 	}
 
 	fn tab_scope(&self, tab: usize) -> TabScope {

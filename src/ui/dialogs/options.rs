@@ -11,10 +11,10 @@ use crate::{
 };
 
 pub fn prompt_for_notification_types(
-	frame: &Frame,
+	parent: &dyn WxWidget,
 	initial_disabled: &[NotificationKind],
 ) -> Option<Vec<NotificationKind>> {
-	let dialog = Dialog::builder(frame, "Notification Types").with_size(350, 340).build();
+	let dialog = Dialog::builder(parent, "Notification Types").with_size(350, 340).build();
 	let panel = Panel::builder(&dialog).build();
 	let main_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	let info_label = StaticText::builder(&panel)
@@ -56,8 +56,11 @@ pub fn prompt_for_notification_types(
 	}
 }
 
-pub fn prompt_for_default_timelines(frame: &Frame, initial: &[DefaultTimeline]) -> Option<Vec<DefaultTimeline>> {
-	let dialog = Dialog::builder(frame, "Default Timelines").with_size(350, 300).build();
+pub fn prompt_for_default_timelines(
+	parent: &dyn WxWidget,
+	initial: &[DefaultTimeline],
+) -> Option<Vec<DefaultTimeline>> {
+	let dialog = Dialog::builder(parent, "Default Timelines").with_size(350, 300).build();
 	let panel = Panel::builder(&dialog).build();
 	let main_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	let info_label =
@@ -234,10 +237,9 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 	let notification_types_button = Button::builder(&general_panel).with_label("Notification &Types...").build();
 	let current_disabled_notification_types = Rc::new(RefCell::new(disabled_notification_types));
 	let disabled_types_clone = current_disabled_notification_types.clone();
-	let notification_types_frame = *frame;
 	notification_types_button.on_click(move |_| {
 		let initial = disabled_types_clone.borrow().clone();
-		if let Some(updated) = prompt_for_notification_types(&notification_types_frame, &initial) {
+		if let Some(updated) = prompt_for_notification_types(&dialog, &initial) {
 			*disabled_types_clone.borrow_mut() = updated;
 		}
 	});
@@ -246,7 +248,11 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 	general_sizer.add(&previews_checkbox, 0, SizerFlag::Expand | SizerFlag::All, 8);
 	general_sizer.add(&strip_tracking_checkbox, 0, SizerFlag::Expand | SizerFlag::All, 8);
 	general_sizer.add(&quick_action_checkbox, 0, SizerFlag::Expand | SizerFlag::All, 8);
-	general_sizer.add(&global_keys_checkbox, 0, SizerFlag::Expand | SizerFlag::All, 8);
+	if cfg!(windows) {
+		general_sizer.add(&global_keys_checkbox, 0, SizerFlag::Expand | SizerFlag::All, 8);
+	} else {
+		global_keys_checkbox.show(false);
+	}
 	general_sizer.add(&update_checkbox, 0, SizerFlag::Expand | SizerFlag::All, 8);
 	general_sizer.add_sizer(&channel_sizer, 0, SizerFlag::Expand | SizerFlag::All, 8);
 	general_sizer.add_sizer(&notification_sizer, 0, SizerFlag::Expand | SizerFlag::All, 8);
@@ -254,10 +260,9 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 	let shortcuts_button = Button::builder(&general_panel).with_label("Customize &Keyboard Shortcuts...").build();
 	let current_shortcuts = Rc::new(RefCell::new(shortcuts));
 	let shortcuts_clone = current_shortcuts.clone();
-	let shortcuts_frame = *frame;
 	shortcuts_button.on_click(move |_| {
 		let initial = shortcuts_clone.borrow().clone();
-		if let Some(updated) = crate::ui::dialogs::prompt_for_shortcuts(&shortcuts_frame, &initial) {
+		if let Some(updated) = crate::ui::dialogs::prompt_for_shortcuts(&dialog, &initial) {
 			*shortcuts_clone.borrow_mut() = updated;
 		}
 	});
@@ -335,10 +340,9 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 	let customize_button = Button::builder(&timeline_panel).with_label("Customize Default Timelines...").build();
 	let current_defaults = Rc::new(RefCell::new(default_timelines_val));
 	let defaults_clone = current_defaults.clone();
-	let parent_frame = *frame;
 	customize_button.on_click(move |_| {
 		let initial = defaults_clone.borrow().clone();
-		if let Some(updated) = prompt_for_default_timelines(&parent_frame, &initial) {
+		if let Some(updated) = prompt_for_default_timelines(&dialog, &initial) {
 			*defaults_clone.borrow_mut() = updated;
 		}
 	});
