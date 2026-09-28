@@ -258,6 +258,7 @@ pub enum ActionId {
 	LoadMore,
 	CloseTimeline,
 	TogglePermanentTimeline,
+	ToggleTimelineNotifications,
 	Refresh,
 	SwitchPrevTimeline,
 	SwitchNextTimeline,
@@ -325,6 +326,7 @@ impl ActionId {
 			Self::LoadMore,
 			Self::CloseTimeline,
 			Self::TogglePermanentTimeline,
+			Self::ToggleTimelineNotifications,
 			Self::Refresh,
 			Self::SwitchPrevTimeline,
 			Self::SwitchNextTimeline,
@@ -392,6 +394,7 @@ impl ActionId {
 			Self::LoadMore => "Load More",
 			Self::CloseTimeline => "Close Timeline",
 			Self::TogglePermanentTimeline => "Make Timeline Permanent or Closable",
+			Self::ToggleTimelineNotifications => "Turn New Post Notifications On or Off",
 			Self::Refresh => "Refresh",
 			Self::SwitchPrevTimeline => "Previous Timeline",
 			Self::SwitchNextTimeline => "Next Timeline",
@@ -461,6 +464,7 @@ impl ActionId {
 				Self::LoadMore => Some(KeyChord::new(false, false, false, ".")),
 				Self::CloseTimeline => Some(KeyChord::new(false, false, false, "Backspace")),
 				Self::TogglePermanentTimeline => Some(KeyChord::new(true, false, false, "P")),
+				Self::ToggleTimelineNotifications => Some(KeyChord::new(true, false, false, "N")),
 				Self::Refresh => Some(KeyChord::new(false, false, false, "F5")),
 				Self::SwitchPrevTimeline => Some(KeyChord::new(false, false, false, "Left")),
 				Self::SwitchNextTimeline => Some(KeyChord::new(false, false, false, "Right")),
@@ -526,6 +530,7 @@ impl ActionId {
 				Self::LoadMore => Some(KeyChord::new(false, false, false, ".")),
 				Self::CloseTimeline => Some(KeyChord::new(true, false, false, "W")),
 				Self::TogglePermanentTimeline => Some(KeyChord::new(true, false, true, "P")),
+				Self::ToggleTimelineNotifications => Some(KeyChord::new(true, false, true, "N")),
 				Self::Refresh => Some(KeyChord::new(false, false, false, "F5")),
 				Self::SwitchPrevTimeline => Some(KeyChord::new(false, false, false, "Left")),
 				Self::SwitchNextTimeline => Some(KeyChord::new(false, false, false, "Right")),
@@ -1090,6 +1095,8 @@ pub struct Account {
 	#[serde(default)]
 	#[serde(alias = "locked_timelines")]
 	pub permanent_timelines: Vec<crate::timeline::TimelineType>,
+	#[serde(default)]
+	pub notifying_timelines: Vec<crate::timeline::TimelineType>,
 }
 
 impl Account {
@@ -1108,6 +1115,7 @@ impl Account {
 			saved_active_timeline: None,
 			saved_selected_post_id: None,
 			permanent_timelines: Vec::new(),
+			notifying_timelines: Vec::new(),
 		}
 	}
 

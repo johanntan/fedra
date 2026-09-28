@@ -9,9 +9,9 @@ use crate::{
 	ID_MENTIONS_TIMELINE, ID_NEW_POST, ID_NOTIFICATIONS_TIMELINE, ID_OPEN_INSTANCE_TIMELINE_BY_INPUT, ID_OPEN_LINKS,
 	ID_OPEN_LIST, ID_OPEN_USER_TIMELINE_BY_INPUT, ID_OPTIONS, ID_PIN_POST, ID_PLAY_MEDIA, ID_QUOTE, ID_REFRESH,
 	ID_REPLY, ID_REPLY_AUTHOR, ID_SEARCH, ID_SENT_TIMELINE, ID_TOGGLE_FOLLOW, ID_TOGGLE_PERMANENT_TIMELINE,
-	ID_VIEW_BOOSTS, ID_VIEW_FAVORITES, ID_VIEW_HASHTAGS, ID_VIEW_HELP, ID_VIEW_IN_BROWSER, ID_VIEW_MENTIONS,
-	ID_VIEW_POST, ID_VIEW_PROFILE, ID_VIEW_QUOTED_THREAD, ID_VIEW_THREAD, ID_VIEW_USER_TIMELINE, ID_VOTE,
-	config::ActionId, ui::commands::get_selected_status,
+	ID_TOGGLE_TIMELINE_NOTIFICATIONS, ID_VIEW_BOOSTS, ID_VIEW_FAVORITES, ID_VIEW_HASHTAGS, ID_VIEW_HELP,
+	ID_VIEW_IN_BROWSER, ID_VIEW_MENTIONS, ID_VIEW_POST, ID_VIEW_PROFILE, ID_VIEW_QUOTED_THREAD, ID_VIEW_THREAD,
+	ID_VIEW_USER_TIMELINE, ID_VOTE, config::ActionId, ui::commands::get_selected_status,
 };
 
 pub fn build_menu_bar() -> MenuBar {
@@ -156,6 +156,11 @@ pub fn build_menu_bar() -> MenuBar {
 			ID_TOGGLE_PERMANENT_TIMELINE,
 			"Make Timeline &Permanent or Closable",
 			"Stop or allow closing the current timeline",
+		)
+		.append_item(
+			ID_TOGGLE_TIMELINE_NOTIFICATIONS,
+			"Turn New Post &Notifications On or Off",
+			"Get notified of new posts in the current timeline",
 		)
 		.append_separator()
 		.append_item(ID_REFRESH, "&Refresh\tF5", "Refresh current timeline")
@@ -481,6 +486,12 @@ pub fn update_menu_labels(menu_bar: &MenuBar, state: &AppState) {
 		ID_TOGGLE_PERMANENT_TIMELINE,
 		"Make Timeline &Permanent or Closable",
 		&sc.get_menu_str(q, ActionId::TogglePermanentTimeline),
+	);
+	set_item_label(
+		menu_bar,
+		ID_TOGGLE_TIMELINE_NOTIFICATIONS,
+		"Turn New Post &Notifications On or Off",
+		&sc.get_menu_str(q, ActionId::ToggleTimelineNotifications),
 	);
 	set_item_label(menu_bar, ID_REFRESH, "&Refresh", &sc.get_menu_str(q, ActionId::Refresh));
 	set_item_label(menu_bar, ID_MANAGE_ACCOUNTS, "Manage &Accounts...", &sc.get_menu_str(q, ActionId::ManageAccounts));

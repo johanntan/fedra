@@ -225,7 +225,7 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 	channel_sizer.add(&channel_choice, 1, SizerFlag::Expand, 0);
 	let notification_label = StaticText::builder(&general_panel).with_label("Notifications:").build();
 	let notification_choices =
-		vec!["Classic Windows Notifications".to_string(), "Sound only".to_string(), "Disabled".to_string()];
+		vec!["Operating system notifications".to_string(), "Sound only".to_string(), "Disabled".to_string()];
 	let notification_choice = Choice::builder(&general_panel).with_choices(notification_choices).build();
 	let notification_index = match notification_preference {
 		NotificationPreference::Classic => 0,

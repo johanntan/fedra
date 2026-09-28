@@ -79,6 +79,9 @@ Reorder timelines with `Shift+Left Arrow` and `Shift+Right Arrow` from either li
 ### Permanent Timelines
 Make Timeline Permanent or Closable (`Ctrl+Shift+P`, or `Ctrl+P` in Quick Action Keys mode) makes the current timeline permanent, so it can't be closed until you press it again. Permanent timelines are saved per account.
 
+### New Post Notifications
+Turn New Post Notifications On or Off (`Ctrl+Shift+N`, or `Ctrl+N` in Quick Action Keys mode) notifies you when new posts arrive in the current timeline, the same way as for notifications: with a system notification, only a sound, or not at all, as set in Options. It works in timelines that update live: Home, Local, Federated, Direct Messages, and lists. A burst of posts gives you one notification rather than one for each post, and your own posts never notify you. The setting is saved per account.
+
 ### Refreshing
 Streaming timelines update themselves. `F5` refreshes the current timeline at any time, and `.` (Load More) fetches older entries. If a streaming timeline loses its connection, Fedra re-fetches it about once a minute until streaming comes back.
 
@@ -119,7 +122,7 @@ Open options with `Ctrl+,`.
   - `Stable releases`
   - `Test builds`
 - Notifications mode:
-  - Classic Windows Notifications
+  - Operating system notifications
   - Sound only
   - Disabled
 - `Notification Types...`: choose which notification types to receive (sound, popup, and timeline). All are checked by default; unchecking one hides it from the notification sound/popup and from the Notifications timeline entirely.
@@ -351,6 +354,7 @@ If another program already uses one of these, Fedra says so when it starts, and 
 | Load More | `.` | `.` |
 | Close Timeline | `Ctrl+W` | `Backspace` |
 | Make Timeline Permanent or Closable | `Ctrl+Shift+P` | `Ctrl+P` |
+| Turn New Post Notifications On or Off | `Ctrl+Shift+N` | `Ctrl+N` |
 | Refresh | `F5` | `F5` |
 | Previous Timeline | `Left` | `Left` |
 | Next Timeline | `Right` | `Right` |

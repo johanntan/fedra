@@ -273,6 +273,33 @@ pub(super) fn toggle_permanent(ctx: &mut UiCommandContext<'_>) {
 	ctx.live_region.announce(if permanent { "Permanent" } else { "Closable" });
 }
 
+pub(super) fn toggle_notifications(ctx: &mut UiCommandContext<'_>) {
+	let state = &mut *ctx.state;
+	let Some(active_type) = state.timeline_manager.active().map(|t| t.timeline_type.clone()) else {
+		return;
+	};
+	if matches!(active_type, TimelineType::Notifications | TimelineType::Mentions) {
+		ctx.live_region.announce("This timeline already notifies you");
+		return;
+	}
+	if active_type.stream_params().is_none() {
+		ctx.live_region.announce("This timeline doesn't update live");
+		return;
+	}
+	let Some(account) = state.active_account_mut() else {
+		return;
+	};
+	let notifying = if let Some(index) = account.notifying_timelines.iter().position(|t| *t == active_type) {
+		account.notifying_timelines.remove(index);
+		false
+	} else {
+		account.notifying_timelines.push(active_type);
+		true
+	};
+	let _ = state.save_config();
+	ctx.live_region.announce(if notifying { "Notifications on" } else { "Notifications off" });
+}
+
 pub(super) fn load_more_background(ctx: &mut UiCommandContext<'_>) {
 	let state = &mut *ctx.state;
 	if let Some(active) = state.timeline_manager.active_mut() {

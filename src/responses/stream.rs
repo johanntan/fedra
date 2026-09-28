@@ -25,6 +25,8 @@ pub fn process_stream_events(
 	let mut mention_forwards: Vec<Box<crate::mastodon::Notification>> = Vec::new();
 	let mut own_post_forwards: Vec<Box<Status>> = Vec::new();
 	let mut own_delete_forwards: Vec<String> = Vec::new();
+	let mut new_post_alerts: Vec<(String, Status)> = Vec::new();
+	let notifying_timelines = state.active_account().map(|a| a.notifying_timelines.clone()).unwrap_or_default();
 	for timeline in state.timeline_manager.iter_mut() {
 		let Some(handle) = &timeline.stream_handle else { continue };
 		let events = handle.drain();
@@ -38,6 +40,7 @@ pub fn process_stream_events(
 			.as_deref()
 			.and_then(|id| state.config.accounts.iter().find(|a| a.id == id).and_then(|a| a.user_id.clone()));
 		let current_user_id = current_user_id_string.as_deref();
+		let notifying = notifying_timelines.contains(&timeline.timeline_type);
 		for event in events {
 			match event {
 				streaming::StreamEvent::Update { timeline_type, status } => {
@@ -52,6 +55,9 @@ pub fn process_stream_events(
 						&& status.matches_filter(&timeline_filter, current_user_id)
 						&& !timeline.entries.iter().any(|entry| entry.id() == status.id)
 					{
+						if notifying && current_user_id != Some(status.account.id.as_str()) {
+							new_post_alerts.push((timeline.timeline_type.display_name(), (*status).clone()));
+						}
 						timeline.entries.insert(0, TimelineEntry::Status(Box::new(*status)));
 						if is_active {
 							active_needs_update = true;
@@ -83,9 +89,10 @@ pub fn process_stream_events(
 								let pref = state.config.notification_preference;
 								match pref {
 									crate::config::NotificationPreference::Classic => {
-										if let Some(app_shell) = &state.app_shell {
-											crate::notifications::show_notification(app_shell, &notification);
-										}
+										crate::notifications::show_notification(
+											state.app_shell.as_deref(),
+											&notification,
+										);
 									}
 									crate::config::NotificationPreference::SoundOnly => {
 										if let Some((output, sound_path)) = &state.notification_sound {
@@ -130,6 +137,9 @@ pub fn process_stream_events(
 								}
 							});
 						}
+						if notifying && current_user_id != Some(status.account.id.as_str()) {
+							new_post_alerts.push((timeline.timeline_type.display_name(), status.clone()));
+						}
 						timeline.entries.insert(0, TimelineEntry::Status(Box::new(status)));
 						if is_active {
 							active_needs_update = true;
@@ -149,6 +159,7 @@ pub fn process_stream_events(
 			}
 		}
 	}
+	crate::notifications::notify_new_posts(state, &new_post_alerts);
 	if !mention_forwards.is_empty()
 		&& let Some(mentions_tl) = state.timeline_manager.get_mut(&TimelineType::Mentions)
 	{

@@ -13,8 +13,9 @@ use crate::{
 	ID_MENTIONS_TIMELINE, ID_NEW_POST, ID_NOTIFICATIONS_TIMELINE, ID_OPEN_INSTANCE_TIMELINE_BY_INPUT, ID_OPEN_LINKS,
 	ID_OPEN_LIST, ID_OPEN_USER_TIMELINE_BY_INPUT, ID_OPTIONS, ID_PIN_POST, ID_PLAY_MEDIA, ID_QUOTE, ID_REFRESH,
 	ID_REPLY, ID_REPLY_AUTHOR, ID_SEARCH, ID_SENT_TIMELINE, ID_TOGGLE_FOLLOW, ID_TOGGLE_PERMANENT_TIMELINE,
-	ID_VIEW_BOOSTS, ID_VIEW_FAVORITES, ID_VIEW_HASHTAGS, ID_VIEW_HELP, ID_VIEW_IN_BROWSER, ID_VIEW_MENTIONS,
-	ID_VIEW_POST, ID_VIEW_PROFILE, ID_VIEW_QUOTED_THREAD, ID_VIEW_THREAD, ID_VIEW_USER_TIMELINE, ID_VOTE, UiCommand,
+	ID_TOGGLE_TIMELINE_NOTIFICATIONS, ID_VIEW_BOOSTS, ID_VIEW_FAVORITES, ID_VIEW_HASHTAGS, ID_VIEW_HELP,
+	ID_VIEW_IN_BROWSER, ID_VIEW_MENTIONS, ID_VIEW_POST, ID_VIEW_PROFILE, ID_VIEW_QUOTED_THREAD, ID_VIEW_THREAD,
+	ID_VIEW_USER_TIMELINE, ID_VOTE, UiCommand,
 	config::{ActionId, AutoloadMode, ShortcutsConfig, SortOrder},
 	ui::{commands::command_for, dialogs, keys, menu::build_menu_bar},
 	ui_wake::UiCommandSender,
@@ -143,6 +144,11 @@ pub fn bind_input_handlers(
 						}
 						ActionId::TogglePermanentTimeline => {
 							let _ = ui_tx_delete.send(UiCommand::TogglePermanentTimeline);
+							event.skip(false);
+							return;
+						}
+						ActionId::ToggleTimelineNotifications => {
+							let _ = ui_tx_delete.send(UiCommand::ToggleTimelineNotifications);
 							event.skip(false);
 							return;
 						}
@@ -632,6 +638,12 @@ pub fn bind_input_handlers(
 				return;
 			}
 			let _ = ui_tx_menu.send(UiCommand::TogglePermanentTimeline);
+		}
+		ID_TOGGLE_TIMELINE_NOTIFICATIONS => {
+			if shutdown_menu.get() {
+				return;
+			}
+			let _ = ui_tx_menu.send(UiCommand::ToggleTimelineNotifications);
 		}
 		ID_VIEW_MENTIONS => {
 			if shutdown_menu.get() {
