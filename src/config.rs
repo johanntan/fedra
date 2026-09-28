@@ -78,6 +78,10 @@ pub struct Config {
 	#[serde(default = "default_restore_open_timelines")]
 	pub restore_open_timelines: bool,
 	#[serde(default)]
+	pub sync_read_position: bool,
+	#[serde(default)]
+	pub load_older_to_restore: bool,
+	#[serde(default)]
 	pub shortcuts: ShortcutsConfig,
 	// Open timelines used to be saved once for the whole app rather than per
 	// account. These are only read so `ConfigStore::load` can move them onto
@@ -1054,6 +1058,8 @@ impl Default for Config {
 			find_loading_mode: FindLoadingMode::default(),
 			window_title_template: default_window_title_template(),
 			restore_open_timelines: default_restore_open_timelines(),
+			sync_read_position: false,
+			load_older_to_restore: false,
 			shortcuts: ShortcutsConfig::default(),
 			legacy_saved_timelines: Vec::new(),
 			legacy_saved_active_timeline: None,

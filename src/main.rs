@@ -14,6 +14,7 @@ mod html;
 mod mastodon;
 mod network;
 mod notifications;
+mod read_position;
 mod responses;
 mod speech;
 mod streaming;
@@ -119,6 +120,8 @@ pub(crate) struct AppState {
 	pub(crate) _instance_checker: Option<SingleInstanceChecker>,
 	pub(crate) pending_thread_continuation: bool,
 	pub(crate) pending_restore_post_id: Option<(crate::timeline::TimelineType, String)>,
+	pub(crate) restore_pages: u8,
+	pub(crate) synced_markers: std::collections::HashMap<&'static str, String>,
 	pub(crate) pending_post: Option<PendingPost>,
 	pub(crate) pending_add_to_list_user: Option<String>,
 }
@@ -153,6 +156,8 @@ impl AppState {
 			_instance_checker: instance_checker,
 			pending_thread_continuation: false,
 			pending_restore_post_id: None,
+			restore_pages: 0,
+			synced_markers: std::collections::HashMap::new(),
 			pending_post: None,
 			pending_add_to_list_user: None,
 		}

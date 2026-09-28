@@ -16,6 +16,7 @@ use reqwest::{
 	blocking::{Client, RequestBuilder, Response},
 };
 use serde::de::DeserializeOwned;
+pub use timelines::Markers;
 
 pub const DEFAULT_SCOPES: &str = "read write follow";
 

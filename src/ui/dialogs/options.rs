@@ -118,6 +118,8 @@ pub struct OptionsDialogInput {
 	pub preserve_thread_order: bool,
 	pub default_timelines: Vec<DefaultTimeline>,
 	pub restore_open_timelines: bool,
+	pub sync_read_position: bool,
+	pub load_older_to_restore: bool,
 	pub notification_preference: NotificationPreference,
 	pub disabled_notification_types: Vec<NotificationKind>,
 	pub global_keys: bool,
@@ -145,6 +147,8 @@ pub struct OptionsDialogResult {
 	pub preserve_thread_order: bool,
 	pub default_timelines: Vec<DefaultTimeline>,
 	pub restore_open_timelines: bool,
+	pub sync_read_position: bool,
+	pub load_older_to_restore: bool,
 	pub notification_preference: NotificationPreference,
 	pub disabled_notification_types: Vec<NotificationKind>,
 	pub global_keys: bool,
@@ -174,6 +178,8 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 		preserve_thread_order,
 		default_timelines: default_timelines_val,
 		restore_open_timelines,
+		sync_read_position,
+		load_older_to_restore,
 		notification_preference,
 		disabled_notification_types,
 		global_keys,
@@ -271,6 +277,12 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 	let restore_timelines_checkbox =
 		CheckBox::builder(&timeline_panel).with_label("&Restore open timelines on startup").build();
 	restore_timelines_checkbox.set_value(restore_open_timelines);
+	let sync_position_checkbox =
+		CheckBox::builder(&timeline_panel).with_label("&Sync home and notifications position with your server").build();
+	sync_position_checkbox.set_value(sync_read_position);
+	let load_older_checkbox =
+		CheckBox::builder(&timeline_panel).with_label("Load ol&der posts to find your saved position").build();
+	load_older_checkbox.set_value(load_older_to_restore);
 	let autoload_label = StaticText::builder(&timeline_panel).with_label("&Autoload posts:").build();
 	let autoload_choices =
 		vec!["Never".to_string(), "When reaching the end".to_string(), "When navigating past the end".to_string()];
@@ -330,6 +342,8 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 	timeline_sizer.add(&thread_order_checkbox, 0, SizerFlag::Expand | SizerFlag::All, 8);
 	timeline_sizer.add(&find_load_checkbox, 0, SizerFlag::Expand | SizerFlag::All, 8);
 	timeline_sizer.add(&restore_timelines_checkbox, 0, SizerFlag::Expand | SizerFlag::All, 8);
+	timeline_sizer.add(&sync_position_checkbox, 0, SizerFlag::Expand | SizerFlag::All, 8);
+	timeline_sizer.add(&load_older_checkbox, 0, SizerFlag::Expand | SizerFlag::All, 8);
 	let customize_button = Button::builder(&timeline_panel).with_label("Customize Default Timelines...").build();
 	let current_defaults = Rc::new(RefCell::new(default_timelines_val));
 	let defaults_clone = current_defaults.clone();
@@ -809,6 +823,8 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 		quick_action_keys: quick_action_checkbox.get_value(),
 		check_for_updates: update_checkbox.get_value(),
 		restore_open_timelines: restore_timelines_checkbox.get_value(),
+		sync_read_position: sync_position_checkbox.get_value(),
+		load_older_to_restore: load_older_checkbox.get_value(),
 		update_channel: new_update_channel,
 		autoload: new_autoload,
 		fetch_limit: new_fetch_limit,

@@ -277,6 +277,11 @@ pub enum NetworkCommand {
 	UnmuteTag {
 		name: String,
 	},
+	FetchMarkers,
+	SaveMarker {
+		timeline: &'static str,
+		last_read_id: String,
+	},
 	Shutdown,
 }
 
@@ -380,6 +385,7 @@ pub enum NetworkResponse {
 		name: String,
 		result: Result<crate::mastodon::Tag>,
 	},
+	MarkersLoaded(Result<crate::mastodon::Markers>),
 	TagUnfollowed {
 		name: String,
 		result: Result<crate::mastodon::Tag>,
@@ -1292,6 +1298,13 @@ fn network_loop(
 			Ok(NetworkCommand::RemoveListAccount { list_id, account_id }) => {
 				let result = client.remove_list_accounts(access_token, &list_id, slice::from_ref(&account_id));
 				send_response(responses, ui_waker, NetworkResponse::ListAccountRemoved { list_id, account_id, result });
+			}
+			Ok(NetworkCommand::FetchMarkers) => {
+				let result = client.get_markers(access_token);
+				send_response(responses, ui_waker, NetworkResponse::MarkersLoaded(result));
+			}
+			Ok(NetworkCommand::SaveMarker { timeline, last_read_id }) => {
+				let _ = client.set_marker(access_token, timeline, &last_read_id);
 			}
 			Ok(NetworkCommand::Shutdown) | Err(_) => {
 				break;

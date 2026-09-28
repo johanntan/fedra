@@ -1,13 +1,37 @@
 //! Paged timeline, notification, and conversation fetches.
 
 use anyhow::Result;
+use serde::Deserialize;
 
 use crate::{
 	mastodon::{Conversation, MastodonClient, Notification, Status},
 	timeline::TimelineType,
 };
 
+#[derive(Debug, Default, Deserialize)]
+pub struct Markers {
+	pub home: Option<Marker>,
+	pub notifications: Option<Marker>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Marker {
+	pub last_read_id: String,
+}
+
 impl MastodonClient {
+	pub fn get_markers(&self, access_token: &str) -> Result<Markers> {
+		let mut url = self.base_url.join("api/v1/markers")?;
+		url.query_pairs_mut().append_pair("timeline[]", "home").append_pair("timeline[]", "notifications");
+		self.get_json(access_token, url, "fetch read positions")
+	}
+
+	pub fn set_marker(&self, access_token: &str, timeline: &str, last_read_id: &str) -> Result<()> {
+		let url = self.base_url.join("api/v1/markers")?;
+		let form = [(format!("{timeline}[last_read_id]"), last_read_id)];
+		Self::send_empty(self.http.post(url).bearer_auth(access_token).form(&form), "save read position")
+	}
+
 	pub fn get_timeline(
 		&self,
 		access_token: &str,

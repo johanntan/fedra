@@ -6,7 +6,8 @@ use crate::{
 	UiCommand,
 	mastodon::{SearchResults, SearchType, Status},
 	network::{NetworkCommand, TimelineData},
-	timeline::{TimelineEntry, TimelineType},
+	read_position::{MAX_RESTORE_PAGES, is_older},
+	timeline::{Timeline, TimelineEntry, TimelineType},
 	ui::{dialogs, menu::update_menu_labels, timeline_view::update_active_timeline_ui},
 };
 
@@ -28,14 +29,10 @@ pub(super) fn loaded(
 		let mut status_snapshots: Vec<Status> = Vec::new();
 		let view_options = state.timeline_view_options_for(timeline_type);
 		let timeline_index_opt = state.timeline_manager.index_of(timeline_type);
-		let restore_id = if max_id.is_none() {
-			state
-				.pending_restore_post_id
-				.as_ref()
-				.and_then(|(rt, id)| if *rt == *timeline_type { Some(id.clone()) } else { None })
-		} else {
-			None
-		};
+		let restore_id =
+			state.pending_restore_post_id.as_ref().and_then(|(rt, id)| (*rt == *timeline_type).then(|| id.clone()));
+		let may_load_older = state.config.load_older_to_restore && state.restore_pages < MAX_RESTORE_PAGES;
+		let mut restore = None;
 		if let Some(timeline) = state.timeline_manager.get_mut(timeline_type) {
 			let filter_context = timeline_type.filter_context();
 			let template_key = timeline_type.template_key();
@@ -103,16 +100,6 @@ pub(super) fn loaded(
 					timeline.entries.extend(filtered);
 				}
 				timeline.next_max_id = next_max_id;
-				if is_active && let Some(idx) = timeline_index_opt {
-					update_active_timeline_ui(
-						timeline_list,
-						timeline,
-						suppress_selection,
-						&view_options,
-						&state.cw_expanded,
-						idx,
-					);
-				}
 			} else {
 				// A fresh fetch of the newest posts (initial open, or a manual/background
 				// refresh). If the timeline already has entries loaded, merge instead of
@@ -132,29 +119,34 @@ pub(super) fn loaded(
 						timeline.entries = fresh;
 					}
 				}
-				if let Some(ref id) = restore_id
-					&& timeline.entries.iter().any(|e| e.id() == id.as_str())
-				{
-					timeline.selected_id = Some(id.clone());
-				}
-				if is_active && let Some(idx) = timeline_index_opt {
-					update_active_timeline_ui(
-						timeline_list,
-						timeline,
-						suppress_selection,
-						&view_options,
-						&state.cw_expanded,
-						idx,
-					);
-				}
-				// Only adopt the new pagination cursor on the initial load; a merge keeps
-				// the existing (older) cursor, which still correctly points past the
-				// combined list's oldest entry for "load more".
+				// Only the initial load adopts the new pagination cursor; a merge keeps the
+				// existing (older) cursor, which still points past the combined list's oldest
+				// entry for "load more".
 				if was_initial_load {
 					timeline.next_max_id = next_max_id;
 				}
 			}
-			timeline.loading_more = false;
+			if let Some(id) = &restore_id {
+				restore = Some(restore_position(timeline, id, may_load_older));
+			}
+			let finding_place = matches!(restore, Some(Some(_)));
+			if finding_place && state.restore_pages == 0 {
+				live_region.announce("Finding your place");
+			}
+			if !finding_place
+				&& is_active
+				&& let Some(idx) = timeline_index_opt
+			{
+				update_active_timeline_ui(
+					timeline_list,
+					timeline,
+					suppress_selection,
+					&view_options,
+					&state.cw_expanded,
+					idx,
+				);
+			}
+			timeline.loading_more = finding_place;
 			timeline.loading_more_in_background = false;
 			if is_active && timeline.pending_find_next {
 				timeline.pending_find_next = false;
@@ -165,9 +157,22 @@ pub(super) fn loaded(
 				should_find_prev = true;
 			}
 		}
-		// Clear the pending restore if it was for this timeline (whether found or not).
-		if restore_id.is_some() {
-			state.pending_restore_post_id = None;
+		match restore {
+			Some(Some(older_than)) => {
+				state.restore_pages += 1;
+				if let Some(handle) = &state.network_handle {
+					handle.send(NetworkCommand::FetchTimeline {
+						timeline_type: timeline_type.clone(),
+						limit: Some(u32::from(state.config.fetch_limit)),
+						max_id: Some(older_than),
+					});
+				}
+			}
+			Some(None) => {
+				state.pending_restore_post_id = None;
+				state.restore_pages = 0;
+			}
+			None => {}
 		}
 		status_snapshots
 	};
@@ -318,4 +323,15 @@ fn merge_snapshots(ctx: &mut NetworkResponseContext<'_>, snapshots: &[Status]) {
 	if merged_any {
 		ctx.refresh_active_timeline();
 	}
+}
+
+/// Selects the saved post `id` if it's loaded, or the next older post if it has been deleted.
+/// Otherwise returns the cursor for the next page to search, if searching further is allowed.
+fn restore_position(timeline: &mut Timeline, id: &str, may_load_older: bool) -> Option<String> {
+	let target = timeline.entries.iter().map(TimelineEntry::id).find(|&entry| entry == id || is_older(entry, id));
+	if let Some(target) = target {
+		timeline.selected_id = Some(target.to_string());
+		return None;
+	}
+	timeline.next_max_id.clone().filter(|_| may_load_older)
 }

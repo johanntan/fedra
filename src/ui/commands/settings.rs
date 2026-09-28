@@ -36,6 +36,8 @@ pub(super) fn show_options(ctx: &mut UiCommandContext<'_>) {
 			preserve_thread_order: state.config.preserve_thread_order,
 			default_timelines: state.config.default_timelines.clone(),
 			restore_open_timelines: state.config.restore_open_timelines,
+			sync_read_position: state.config.sync_read_position,
+			load_older_to_restore: state.config.load_older_to_restore,
 			notification_preference: state.config.notification_preference,
 			disabled_notification_types: state.config.disabled_notification_types.clone(),
 			global_keys: state.config.global_keys,
@@ -62,6 +64,8 @@ pub(super) fn show_options(ctx: &mut UiCommandContext<'_>) {
 			preserve_thread_order,
 			default_timelines,
 			restore_open_timelines,
+			sync_read_position,
+			load_older_to_restore,
 			notification_preference,
 			disabled_notification_types,
 			global_keys,
@@ -96,6 +100,8 @@ pub(super) fn show_options(ctx: &mut UiCommandContext<'_>) {
 		state.config.preserve_thread_order = preserve_thread_order;
 		state.config.default_timelines = default_timelines;
 		state.config.restore_open_timelines = restore_open_timelines;
+		state.config.sync_read_position = sync_read_position;
+		state.config.load_older_to_restore = load_older_to_restore;
 		state.config.notification_preference = notification_preference;
 		state.config.disabled_notification_types = disabled_notification_types;
 		state.config.global_keys = global_keys;

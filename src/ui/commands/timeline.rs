@@ -198,6 +198,7 @@ pub(super) fn refresh(ctx: &mut UiCommandContext<'_>) {
 pub(super) fn poll_streamable(ctx: &mut UiCommandContext<'_>) {
 	let state = &mut *ctx.state;
 	poll_streamable_timelines(state);
+	crate::read_position::sync(state);
 }
 
 pub(super) fn open(ctx: &mut UiCommandContext<'_>, timeline_type: TimelineType) {

@@ -137,6 +137,8 @@ Open options with `Ctrl+,`.
 
 ### Timeline Tab
 - `Restore open timelines on startup` (when off, only your default timelines are reopened)
+- `Sync home and notifications position with your server` (saves where you are in Home and Notifications to your instance about once a minute and when you exit, and picks up from there at startup, so you can carry on from another app that syncs its position, such as Tusky or Ivory, and the other way around)
+- `Load older posts to find your saved position` (when your saved position is further back than the first page of posts, keeps loading older posts until it finds it, up to 10 pages; if that post was deleted, you land on the next older one)
 - Autoload posts:
   - Never
   - When reaching the end

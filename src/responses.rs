@@ -165,6 +165,8 @@ fn handle_response(
 		NetworkResponse::StatusEdited { result: Err(err), .. } => ctx.announce_failure("Failed to edit", &err),
 		NetworkResponse::PollVoted { result } => statuses::poll_voted(ctx, result),
 		NetworkResponse::TagFollowed { name, result } => tags::following_changed(ctx, &name, &result, true),
+		NetworkResponse::MarkersLoaded(Ok(markers)) => crate::read_position::apply_markers(ctx.state, markers),
+		NetworkResponse::MarkersLoaded(Err(_)) => {}
 		NetworkResponse::TagUnfollowed { name, result } => tags::following_changed(ctx, &name, &result, false),
 		NetworkResponse::TagMuted { name, result } => tags::muted_changed(ctx, &name, &result, true),
 		NetworkResponse::TagUnmuted { name, result } => tags::muted_changed(ctx, &name, &result, false),
