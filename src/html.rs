@@ -23,12 +23,21 @@ fn append_text(node: ego_tree::NodeRef<scraper::node::Node>, output: &mut String
 			let is_block = matches!(
 				name,
 				"p" | "div"
-					| "li" | "ul" | "ol"
-					| "blockquote" | "pre"
-					| "section" | "article"
-					| "header" | "footer"
-					| "h1" | "h2" | "h3"
-					| "h4" | "h5" | "h6"
+					| "li"
+					| "ul"
+					| "ol"
+					| "blockquote"
+					| "pre"
+					| "section"
+					| "article"
+					| "header"
+					| "footer"
+					| "h1"
+					| "h2"
+					| "h3"
+					| "h4"
+					| "h5"
+					| "h6"
 			);
 			if is_block {
 				push_newline(output);

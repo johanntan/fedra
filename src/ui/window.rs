@@ -238,8 +238,10 @@ pub fn bind_input_handlers(
 				return;
 			}
 			if !quick_mode
-				&& !ctrl && !shift
-				&& !alt && (32..=126).contains(&k)
+				&& !ctrl
+				&& !shift
+				&& !alt
+				&& (32..=126).contains(&k)
 				&& let Some(ch) = u32::try_from(k).ok().and_then(char::from_u32)
 				&& ch.is_alphanumeric()
 			{
