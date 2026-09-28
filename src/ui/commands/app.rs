@@ -35,22 +35,29 @@ pub(super) fn set_quick_action_keys_enabled(ctx: &mut UiCommandContext<'_>, enab
 pub(super) fn view_help(ctx: &mut UiCommandContext<'_>) {
 	let frame = ctx.frame;
 	let live_region = ctx.live_region;
-	if let Ok(mut path) = std::env::current_exe() {
-		path.pop();
-		path.push("readme.html");
-		if path.exists() {
-			live_region.announce("Opening help");
-			let _ = wxdragon::utils::launch_default_browser(
-				&path.to_string_lossy(),
-				wxdragon::utils::BrowserLaunchFlags::Default,
-			);
-		} else {
-			live_region.announce("Help file not found");
-			dialogs::show_error(frame, &anyhow::anyhow!("The help file is missing. Try reinstalling Fedra."));
-		}
+	let path = crate::resource_dir().join("readme.html");
+	if path.exists() {
+		live_region.announce("Opening help");
+		let _ = wxdragon::utils::launch_default_browser(
+			&path.to_string_lossy(),
+			wxdragon::utils::BrowserLaunchFlags::Default,
+		);
 	} else {
-		live_region.announce("Could not determine help path");
+		live_region.announce("Help file not found");
+		dialogs::show_error(frame, &anyhow::anyhow!("The help file is missing. Try reinstalling Fedra."));
 	}
+}
+
+pub(super) fn show_window(ctx: &mut UiCommandContext<'_>) {
+	let frame = ctx.frame;
+	if !frame.is_shown() {
+		frame.show(true);
+		ctx.tray_hidden.set(false);
+	}
+	if frame.is_iconized() {
+		frame.iconize(false);
+	}
+	frame.raise();
 }
 
 pub(super) fn check_for_updates(ctx: &mut UiCommandContext<'_>) {

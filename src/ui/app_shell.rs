@@ -36,7 +36,7 @@ impl AppShell {
 			.filter(|&action| global_keys || action == GlobalAction::ToggleWindow)
 			.filter_map(|action| shortcuts.get_chord(action).map(|chord| (chord, action)))
 			.collect();
-		if bindings.is_empty() {
+		if bindings.is_empty() || !cfg!(windows) {
 			return Vec::new();
 		}
 		let (running, failed) = GlobalHotkeys::register(bindings, move |action| {
@@ -58,6 +58,7 @@ impl AppShell {
 		// Leaked rather than dropped: dropping waits for the hotkey thread, and blocking here
 		// during close can hang the UI thread. The process is exiting, and Windows releases its
 		// hotkeys when it does.
+		#[cfg(windows)]
 		if let Some(hotkeys) = self.hotkeys.borrow_mut().take() {
 			std::mem::forget(hotkeys);
 		}

@@ -43,7 +43,6 @@ seq_ids! {
 	ID_CLOSE_TIMELINE,
 	ID_REFRESH,
 	ID_LOAD_MORE,
-	ID_OPTIONS,
 	ID_CUSTOMIZE_SHORTCUTS,
 	ID_MANAGE_ACCOUNTS,
 	ID_MANAGE_FILTERS,
@@ -59,3 +58,7 @@ seq_ids! {
 	ID_FIND_PREV,
 	ID_UI_WAKE,
 }
+
+/// wx's standard preferences item, which macOS moves into the app menu as Settings.
+#[allow(clippy::cast_possible_truncation, reason = "wxID_PREFERENCES is 5022")]
+pub const ID_OPTIONS: i32 = wxdragon::ffi::WXD_ID_PREFERENCES as i32;

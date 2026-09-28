@@ -202,12 +202,38 @@ impl AppState {
 	}
 }
 
+/// Where the sounds and readme ship: next to the executable, or in `Contents/Resources` when Fedra
+/// runs from a macOS app bundle.
+#[must_use]
+pub fn resource_dir() -> std::path::PathBuf {
+	let exe_dir = std::env::current_exe().ok().and_then(|path| path.parent().map(std::path::Path::to_path_buf));
+	match exe_dir {
+		Some(dir) if cfg!(target_os = "macos") && dir.ends_with("Contents/MacOS") => dir.with_file_name("Resources"),
+		Some(dir) => dir,
+		None => std::path::PathBuf::new(),
+	}
+}
+
 #[must_use]
 pub fn get_sound_path() -> std::path::PathBuf {
-	std::env::current_exe()
-		.ok()
-		.and_then(|path| path.parent().map(|p| p.join("sounds").join("boop.mp3")))
-		.unwrap_or_else(|| std::path::PathBuf::from("sounds/boop.mp3"))
+	resource_dir().join("sounds").join("boop.mp3")
+}
+
+/// Makes an unbundled binary, such as one started by `cargo run`, a regular app with a menu bar
+/// and focus rather than a background process of the terminal. Must run before wx starts.
+#[cfg(target_os = "macos")]
+fn promote_unbundled_to_regular_app() {
+	use objc::{class, msg_send, runtime::Object, sel, sel_impl};
+	let in_bundle = std::env::current_exe().is_ok_and(|exe| exe.to_string_lossy().contains(".app/Contents/MacOS/"));
+	if in_bundle {
+		return;
+	}
+	// NSApplicationActivationPolicyRegular = 0.
+	unsafe {
+		let ns_app: *mut Object = msg_send![class!(NSApplication), sharedApplication];
+		let _: () = msg_send![ns_app, setActivationPolicy: 0_isize];
+		let _: () = msg_send![ns_app, activateIgnoringOtherApps: true];
+	}
 }
 
 /// Passed by the Run registry value the installer adds when "Run at startup" is checked.
@@ -231,7 +257,9 @@ fn main() {
 			}
 		}
 	}));
-	let _ = wxdragon::main(|_| {
+	#[cfg(target_os = "macos")]
+	promote_unbundled_to_regular_app();
+	let _ = wxdragon::main(|app| {
 		let instance_checker = SingleInstanceChecker::new("Fedra.SingleInstance", None);
 		if let Some(checker) = instance_checker.as_ref()
 			&& checker.is_another_running()
@@ -246,6 +274,7 @@ fn main() {
 		}
 		let window_parts = build_main_window();
 		let frame = window_parts.frame;
+		speech::init(&frame);
 		let timelines_selector = window_parts.timelines_selector;
 		let timeline_list = window_parts.timeline_list.clone();
 		let (ui_tx_raw, ui_rx) = mpsc::channel();
@@ -261,6 +290,10 @@ fn main() {
 		let ui_alive = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(true));
 		let ui_waker = UiWaker::new(frame, ui_alive.clone());
 		let ui_tx = UiCommandSender::new(ui_tx_raw, ui_waker.clone());
+		let ui_tx_reopen = ui_tx.clone();
+		app.on_reopen_app(move || {
+			let _ = ui_tx_reopen.send(UiCommand::ShowWindow);
+		});
 		let quick_action_keys_enabled = Rc::new(Cell::new(config.quick_action_keys));
 		let autoload_mode = Rc::new(Cell::new(config.autoload));
 		let sort_order_cell = Rc::new(Cell::new(config.sort_order));
@@ -284,7 +317,6 @@ fn main() {
 		let app_shell = Rc::new(ui::app_shell::install_app_shell(&frame, ui_tx.clone()));
 		let app_shell_close = app_shell.clone();
 		state.app_shell = Some(app_shell);
-		speech::init();
 		ui::commands::register_hotkeys(&state, &ui_tx, &timeline_list);
 		if state.config.check_for_updates_on_startup {
 			crate::ui::update_check::run_update_check(frame, true);

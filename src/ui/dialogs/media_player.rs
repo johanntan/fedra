@@ -11,11 +11,8 @@ use std::{
 	time::Duration,
 };
 
-use accesskit::{ActionHandler, ActionRequest, ActivationHandler, Node, NodeId, Role, TreeInfo, TreeUpdate};
-use accesskit_windows::SubclassingAdapter;
 use rodio::Source;
 use url::Url;
-use windows::Win32::Foundation::HWND;
 use wxdragon::prelude::*;
 
 use crate::audio;
@@ -71,71 +68,100 @@ fn ui_call_after(f: impl FnOnce() + Send + 'static) {
 	wxdragon::wake_up_idle();
 }
 
-const LR_ROOT_ID: NodeId = NodeId(1);
-const LR_ANNOUNCEMENT_ID: NodeId = NodeId(2);
+#[cfg(windows)]
+mod announcer {
+	use std::{cell::RefCell, rc::Rc};
 
-struct MediaActivationHandler;
+	use accesskit::{ActionHandler, ActionRequest, ActivationHandler, Node, NodeId, Role, TreeInfo, TreeUpdate};
+	use accesskit_windows::SubclassingAdapter;
+	use windows::Win32::Foundation::HWND;
+	use wxdragon::prelude::*;
 
-impl ActivationHandler for MediaActivationHandler {
-	fn request_initial_tree(&mut self) -> Option<TreeUpdate> {
-		let mut root = Node::new(Role::Window);
-		root.set_children(vec![LR_ANNOUNCEMENT_ID]);
-		let mut ann_node = Node::new(Role::Label);
-		ann_node.set_value("");
-		ann_node.set_live(accesskit::Live::Polite);
-		Some(TreeUpdate {
-			nodes: vec![(LR_ANNOUNCEMENT_ID, ann_node), (LR_ROOT_ID, root)],
-			tree: Some(TreeInfo::new(LR_ROOT_ID)),
-			focus: LR_ROOT_ID,
-			tree_id: accesskit::TreeId::ROOT,
-		})
+	const LR_ROOT_ID: NodeId = NodeId(1);
+	const LR_ANNOUNCEMENT_ID: NodeId = NodeId(2);
+
+	struct MediaActivationHandler;
+
+	impl ActivationHandler for MediaActivationHandler {
+		fn request_initial_tree(&mut self) -> Option<TreeUpdate> {
+			let mut root = Node::new(Role::Window);
+			root.set_children(vec![LR_ANNOUNCEMENT_ID]);
+			let mut ann_node = Node::new(Role::Label);
+			ann_node.set_value("");
+			ann_node.set_live(accesskit::Live::Polite);
+			Some(TreeUpdate {
+				nodes: vec![(LR_ANNOUNCEMENT_ID, ann_node), (LR_ROOT_ID, root)],
+				tree: Some(TreeInfo::new(LR_ROOT_ID)),
+				focus: LR_ROOT_ID,
+				tree_id: accesskit::TreeId::ROOT,
+			})
+		}
+	}
+
+	struct MediaActionHandler;
+
+	impl ActionHandler for MediaActionHandler {
+		fn do_action(&mut self, _request: ActionRequest) {}
+	}
+
+	#[derive(Clone)]
+	pub(super) struct MediaLiveRegion {
+		adapter: Rc<RefCell<SubclassingAdapter>>,
+		last_announcement: Rc<RefCell<Option<String>>>,
+	}
+
+	impl MediaLiveRegion {
+		pub(super) fn new(frame: &Frame) -> Self {
+			let hwnd = HWND(frame.get_handle().cast());
+			let last_announcement = Rc::new(RefCell::new(None::<String>));
+			let adapter = SubclassingAdapter::new(hwnd, MediaActivationHandler, MediaActionHandler);
+			Self { adapter: Rc::new(RefCell::new(adapter)), last_announcement }
+		}
+
+		pub(super) fn announce(&self, text: &str) {
+			let mut new_text = text.to_string();
+			let mut last = self.last_announcement.borrow_mut();
+			if let Some(old) = last.as_ref()
+				&& *old == new_text
+			{
+				new_text.push('\u{00A0}');
+			}
+			*last = Some(new_text.clone());
+			let mut node = Node::new(Role::Label);
+			node.set_value(new_text);
+			node.set_live(accesskit::Live::Polite);
+			let mut root = Node::new(Role::Window);
+			root.set_children(vec![LR_ANNOUNCEMENT_ID]);
+			let update = TreeUpdate {
+				nodes: vec![(LR_ANNOUNCEMENT_ID, node), (LR_ROOT_ID, root)],
+				tree: None,
+				focus: LR_ROOT_ID,
+				tree_id: accesskit::TreeId::ROOT,
+			};
+			let mut adapter = self.adapter.borrow_mut();
+			if let Some(events) = adapter.update_if_active(|| update) {
+				events.raise();
+			}
+		}
 	}
 }
 
-struct MediaActionHandler;
+#[cfg(windows)]
+use announcer::MediaLiveRegion;
 
-impl ActionHandler for MediaActionHandler {
-	fn do_action(&mut self, _request: ActionRequest) {}
-}
-
+#[cfg(not(windows))]
 #[derive(Clone)]
-struct MediaLiveRegion {
-	adapter: Rc<RefCell<SubclassingAdapter>>,
-	last_announcement: Rc<RefCell<Option<String>>>,
-}
+struct MediaLiveRegion;
 
+#[cfg(not(windows))]
 impl MediaLiveRegion {
-	fn new(frame: &Frame) -> Self {
-		let hwnd = HWND(frame.get_handle().cast());
-		let last_announcement = Rc::new(RefCell::new(None::<String>));
-		let adapter = SubclassingAdapter::new(hwnd, MediaActivationHandler, MediaActionHandler);
-		Self { adapter: Rc::new(RefCell::new(adapter)), last_announcement }
+	const fn new(_frame: &Frame) -> Self {
+		Self
 	}
 
+	#[allow(clippy::unused_self, reason = "a method, like the Windows version")]
 	fn announce(&self, text: &str) {
-		let mut new_text = text.to_string();
-		let mut last = self.last_announcement.borrow_mut();
-		if let Some(old) = last.as_ref()
-			&& *old == new_text
-		{
-			new_text.push('\u{00A0}');
-		}
-		*last = Some(new_text.clone());
-		let mut node = Node::new(Role::Label);
-		node.set_value(new_text);
-		node.set_live(accesskit::Live::Polite);
-		let mut root = Node::new(Role::Window);
-		root.set_children(vec![LR_ANNOUNCEMENT_ID]);
-		let update = TreeUpdate {
-			nodes: vec![(LR_ANNOUNCEMENT_ID, node), (LR_ROOT_ID, root)],
-			tree: None,
-			focus: LR_ROOT_ID,
-			tree_id: accesskit::TreeId::ROOT,
-		};
-		let mut adapter = self.adapter.borrow_mut();
-		if let Some(events) = adapter.update_if_active(|| update) {
-			events.raise();
-		}
+		crate::speech::speak(text);
 	}
 }
 

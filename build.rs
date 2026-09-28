@@ -23,6 +23,7 @@ fn main() {
 	println!("cargo:rerun-if-changed=sounds");
 	build_docs();
 	configure_installer();
+	embed_commit_hash();
 	let target = env::var("TARGET").unwrap_or_default();
 	if target.contains("windows") {
 		let manifest = new_manifest("Fedra")
@@ -36,7 +37,6 @@ fn main() {
 			println!("cargo:warning=The application will still work but may lack optimal Windows theming");
 		}
 		embed_version_info();
-		embed_commit_hash();
 		delay_load_speech_dlls();
 	}
 }

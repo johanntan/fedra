@@ -1134,6 +1134,15 @@ pub fn config_dir() -> PathBuf {
 		.ok()
 		.and_then(|path| path.parent().map(std::path::Path::to_path_buf))
 		.unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
+	// Writing inside an app bundle would break its signature.
+	#[cfg(target_os = "macos")]
+	if exe_dir.components().any(|c| c.as_os_str().to_string_lossy().ends_with(".app"))
+		&& let Some(home) = env::var_os("HOME")
+	{
+		let dir = PathBuf::from(home).join("Library/Application Support").join(APP_NAME);
+		let _ = fs::create_dir_all(&dir);
+		return dir;
+	}
 	if is_installed(&exe_dir)
 		&& let Ok(appdata) = env::var("APPDATA")
 	{
@@ -1143,16 +1152,7 @@ pub fn config_dir() -> PathBuf {
 }
 
 fn config_path() -> PathBuf {
-	let exe_dir = env::current_exe()
-		.ok()
-		.and_then(|path| path.parent().map(std::path::Path::to_path_buf))
-		.unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
-	if is_installed(&exe_dir)
-		&& let Ok(appdata) = env::var("APPDATA")
-	{
-		return PathBuf::from(appdata).join(APP_NAME).join(CONFIG_FILENAME);
-	}
-	exe_dir.join(CONFIG_FILENAME)
+	config_dir().join(CONFIG_FILENAME)
 }
 
 fn is_installed(exe_dir: &PathBuf) -> bool {
