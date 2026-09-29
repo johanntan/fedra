@@ -3,7 +3,8 @@
 use std::{env, path::Path};
 
 use shipfitter::{
-	build::{configure_file, embed_commit_info, pandoc, pandoc_available, target_profile_dir},
+	build::{configure_file, embed_commit_info, target_profile_dir},
+	docs::{Page, convert},
 	windows::{VersionInfo, embed_manifest},
 };
 
@@ -11,6 +12,7 @@ fn main() {
 	println!("cargo:rerun-if-changed=build.rs");
 	println!("cargo:rerun-if-changed=Cargo.toml");
 	println!("cargo:rerun-if-changed=sounds");
+	println!("cargo:rerun-if-changed=doc");
 	embed_commit_info("FEDRA");
 	if let Some(target_dir) = target_profile_dir() {
 		build_docs(&target_dir);
@@ -37,15 +39,9 @@ fn main() {
 }
 
 fn build_docs(target_dir: &Path) {
-	if !pandoc_available() {
-		println!("cargo:warning=Pandoc not found. Documentation will not be generated.");
-		return;
-	}
-	let doc_dir = Path::new("doc");
-	if let Err(e) =
-		pandoc(&doc_dir.join("readme.md"), &doc_dir.join("pandoc.yaml"), &target_dir.join("readme.html"), None)
-	{
-		println!("cargo:warning={e}");
+	let page = Page { title: "Fedra Documentation", ..Page::default() };
+	if let Err(e) = convert(Path::new("doc/readme.md"), &target_dir.join("readme.html"), &page) {
+		println!("cargo:warning=Failed to generate the readme: {e}");
 	}
 }
 

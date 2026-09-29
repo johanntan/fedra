@@ -22,12 +22,9 @@ This will generate the executable at `target/release/fedra.exe`.
 - Nightly Rust is only required for formatting with `cargo +nightly fmt`.
 - Clippy runs with `clippy::all`, `clippy::pedantic`, and `clippy::nursery` enabled, and CI treats every one as an error.
 
-### Optional Tools
+### Installer
 
-The following tools aren't required to build a functioning Fedra on a basic level, but will help you make a complete release build.
-
-* `pandoc` on your `PATH` to generate the HTML readme.
-* InnoSetup installed to create the installer.
+`cargo release` builds the Windows installer with Inno Setup. If Inno Setup isn't installed, the build downloads it to a per-user cache.
 
 ## Before Committing
 

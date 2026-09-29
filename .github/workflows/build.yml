@@ -39,9 +39,9 @@ jobs:
       with:
         toolchain: stable
         components: rustfmt, clippy
-    - name: Install CMake, Ninja, and Pandoc
+    - name: Install CMake, Ninja, and minisign
       run: |
-        choco install cmake ninja pandoc minisign -y
+        choco install cmake ninja minisign -y
     # Fedra builds against wxWidgets master for fixes that aren't in a release yet.
     # The clone is cached per master commit, so a new commit is picked up on the next run.
     - name: Find wxWidgets master
@@ -102,8 +102,8 @@ jobs:
       uses: dtolnay/rust-toolchain@stable
       with:
         toolchain: stable
-    - name: Install CMake, Ninja, Pandoc, and minisign
-      run: brew install cmake ninja pandoc minisign
+    - name: Install CMake, Ninja, and minisign
+      run: brew install cmake ninja minisign
     - name: Find wxWidgets master
       id: wxwidgets
       run: echo "sha=$(git ls-remote https://github.com/wxWidgets/wxWidgets.git HEAD | cut -f1)" >> "$GITHUB_OUTPUT"
