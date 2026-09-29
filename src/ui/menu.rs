@@ -535,12 +535,11 @@ pub fn update_menu_labels(menu_bar: &MenuBar, state: &AppState) {
 	set_item_label(menu_bar, ID_REFRESH, "&Refresh", &sc.get_menu_str(q, ActionId::Refresh));
 	set_item_label(menu_bar, ID_MANAGE_ACCOUNTS, "Manage &Accounts...", &sc.get_menu_str(q, ActionId::ManageAccounts));
 	set_item_label(menu_bar, ID_MANAGE_FILTERS, "Manage &Filters...", &sc.get_menu_str(q, ActionId::ManageFilters));
-	set_item_label(
-		menu_bar,
-		ID_MESSAGE_REQUESTS,
-		"Message &Requests...",
-		&sc.get_menu_str(q, ActionId::MessageRequests),
-	);
+	let message_requests = match state.pending_message_requests {
+		Some(count) if count > 0 => format!("Message &Requests ({count})..."),
+		_ => "Message &Requests...".to_string(),
+	};
+	set_item_label(menu_bar, ID_MESSAGE_REQUESTS, &message_requests, &sc.get_menu_str(q, ActionId::MessageRequests));
 	set_item_label(menu_bar, ID_MANAGE_LISTS, "Manage &Lists...", &sc.get_menu_str(q, ActionId::ManageLists));
 	set_item_label(menu_bar, ID_EDIT_PROFILE, "Edit &Profile...", &sc.get_menu_str(q, ActionId::EditProfile));
 	set_item_label(

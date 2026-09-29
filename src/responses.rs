@@ -170,8 +170,13 @@ fn handle_response(
 		NetworkResponse::MarkersLoaded(Err(_)) | NetworkResponse::NotificationPolicyLoaded(Err(_)) => {}
 		NetworkResponse::NotificationPolicyLoaded(Ok(policy)) => {
 			let count = policy.summary.pending_requests_count;
-			if count > ctx.state.pending_message_requests.replace(count).unwrap_or(0) {
+			// The first check after launch or an account switch only sets the baseline, which the
+			// File menu shows, so requests that were already waiting don't sound like new ones.
+			if ctx.state.pending_message_requests.replace(count).is_some_and(|previous| count > previous) {
 				crate::notifications::notify_message_requests(ctx.state, count);
+			}
+			if let Some(menu_bar) = ctx.frame.get_menu_bar() {
+				update_menu_labels(&menu_bar, ctx.state);
 			}
 		}
 		NetworkResponse::TagUnfollowed { name, result } => tags::following_changed(ctx, &name, &result, false),
