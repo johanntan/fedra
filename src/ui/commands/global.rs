@@ -48,7 +48,11 @@ fn step(ctx: &UiCommandContext<'_>, key: i32) {
 		ctx.live_region.announce("No posts");
 		return;
 	}
+	let before = list.get_selection();
 	list.navigate(key);
+	if !ctx.state.config.repeat_at_timeline_edges && list.get_selection() == before {
+		return;
+	}
 	// With the list focused in a foreground window, the screen reader reads the new selection
 	// itself, and saying it again would read it twice.
 	if list.has_focus() && app_shell::is_window_active(ctx.frame) {

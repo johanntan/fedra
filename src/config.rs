@@ -65,6 +65,9 @@ pub struct Config {
 	/// Whether the global shortcuts other than showing and hiding the window are registered.
 	#[serde(default)]
 	pub global_keys: bool,
+	/// Whether moving past the first or last post with a global shortcut reads that post again.
+	#[serde(default = "default_true")]
+	pub repeat_at_timeline_edges: bool,
 	#[serde(default = "default_strip_tracking")]
 	pub strip_tracking: bool,
 	#[serde(default)]
@@ -1079,6 +1082,7 @@ impl Default for Config {
 			update_channel: UpdateChannel::default(),
 			legacy_hotkey: None,
 			global_keys: false,
+			repeat_at_timeline_edges: true,
 			strip_tracking: true,
 			templates: PostTemplates::default(),
 			filters: TimelineFilters::default(),

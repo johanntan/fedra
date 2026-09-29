@@ -138,8 +138,13 @@ Open options with `Ctrl+,`.
   - Edited posts
   - New posts
   - Moderation and admin
-- `Use global shortcuts to control Fedra from anywhere`: turns the [global shortcuts](#global-shortcuts) on or off. The show and hide shortcut always works, so you can't lose a hidden window.
 - `Customize Keyboard Shortcuts...`
+
+### Invisible Interface Tab
+This tab only appears on Windows.
+
+- `Use the invisible interface`: turns the [global shortcuts](#global-shortcuts) on or off. The show and hide shortcut always works, so you can't lose a hidden window.
+- `Repeat the post at the start or end of a timeline`: when on, moving past the first or last post with a global shortcut reads that post again. When off, you hear nothing.
 
 ### Timeline Tab
 - `Restore open timelines on startup` (when off, only your default timelines are reopened)
@@ -252,7 +257,7 @@ These are built into the lists and cannot be customized:
 - `Shift+F10` or the applications key: Open the actions menu for the focused post, or for the focused user in the followers/following dialogs
 
 ### Global shortcuts
-Global shortcuts work from any program, whether Fedra's window is shown, hidden, or behind other windows. Moving through posts reads each one aloud, through your screen reader when one is running, and switching timelines reads the timeline's name and the post you land on. Almost every action from the Normal and Quick Action Keys tabs is available as a global shortcut too. They're off by default: turn them on with `Use global shortcuts to control Fedra from anywhere` in Options. Show and hide works either way. You can change, clear, or add any of them on the **Global** tab of Customize Keyboard Shortcuts.
+Global shortcuts work from any program, whether Fedra's window is shown, hidden, or behind other windows. Moving through posts reads each one aloud, through your screen reader when one is running, and switching timelines reads the timeline's name and the post you land on. Almost every action from the Normal and Quick Action Keys tabs is available as a global shortcut too. They're off by default: turn them on with `Use the invisible interface` on the **Invisible Interface** tab of Options. Show and hide works either way. On the same tab, turn off `Repeat the post at the start or end of a timeline` to hear nothing when you move past the first or last post, instead of the same post again. You can change, clear, or add any of them on the **Global** tab of Customize Keyboard Shortcuts.
 
 Each default is Fedra's own Normal mode shortcut for the same action with Ctrl, Alt, and Win added, so `Ctrl+P` for a profile becomes `Ctrl+Alt+Win+P`, and the arrows that move through the list become `Ctrl+Alt+Win` and an arrow. Show and hide keeps `Ctrl+Alt+F`. Actions not listed here, including Find, View Thread, Delete Post, Open in Browser, and Exit, start with no global shortcut, because their keys would clash with another action or with Windows. `Ctrl+Alt+Shift+Win` is the Office key, so no default uses it with a letter that opens an Office app, such as O for Outlook.
 

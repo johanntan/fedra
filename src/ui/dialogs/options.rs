@@ -123,6 +123,7 @@ pub struct OptionsDialogInput {
 	pub notification_preference: NotificationPreference,
 	pub disabled_notification_types: Vec<NotificationKind>,
 	pub global_keys: bool,
+	pub repeat_at_timeline_edges: bool,
 	pub shortcuts: crate::config::ShortcutsConfig,
 	pub templates: PostTemplates,
 	pub filters: crate::config::TimelineFilters,
@@ -152,6 +153,7 @@ pub struct OptionsDialogResult {
 	pub notification_preference: NotificationPreference,
 	pub disabled_notification_types: Vec<NotificationKind>,
 	pub global_keys: bool,
+	pub repeat_at_timeline_edges: bool,
 	pub shortcuts: crate::config::ShortcutsConfig,
 	pub templates: PostTemplates,
 	pub filters: crate::config::TimelineFilters,
@@ -183,6 +185,7 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 		notification_preference,
 		disabled_notification_types,
 		global_keys,
+		repeat_at_timeline_edges,
 		shortcuts,
 		templates,
 		filters,
@@ -207,9 +210,6 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 	let quick_action_checkbox =
 		CheckBox::builder(&general_panel).with_label("Use &quick action keys in timelines").build();
 	quick_action_checkbox.set_value(quick_action_keys);
-	let global_keys_checkbox =
-		CheckBox::builder(&general_panel).with_label("Use &global shortcuts to control Fedra from anywhere").build();
-	global_keys_checkbox.set_value(global_keys);
 	let update_checkbox = CheckBox::builder(&general_panel).with_label("Check for &updates on startup").build();
 	update_checkbox.set_value(check_for_updates);
 	let channel_label = StaticText::builder(&general_panel).with_label("Updates:").build();
@@ -250,11 +250,6 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 	general_sizer.add(&previews_checkbox, 0, SizerFlag::Expand | SizerFlag::All, 8);
 	general_sizer.add(&strip_tracking_checkbox, 0, SizerFlag::Expand | SizerFlag::All, 8);
 	general_sizer.add(&quick_action_checkbox, 0, SizerFlag::Expand | SizerFlag::All, 8);
-	if cfg!(windows) {
-		general_sizer.add(&global_keys_checkbox, 0, SizerFlag::Expand | SizerFlag::All, 8);
-	} else {
-		global_keys_checkbox.show(false);
-	}
 	general_sizer.add(&update_checkbox, 0, SizerFlag::Expand | SizerFlag::All, 8);
 	general_sizer.add_sizer(&channel_sizer, 0, SizerFlag::Expand | SizerFlag::All, 8);
 	general_sizer.add_sizer(&notification_sizer, 0, SizerFlag::Expand | SizerFlag::All, 8);
@@ -272,6 +267,23 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 	general_sizer.add_stretch_spacer(1);
 	general_panel.set_sizer(general_sizer, true);
 	notebook.add_page(&general_panel, "General", true, None);
+	let invisible_panel = Panel::builder(&notebook).with_style(PanelStyle::TabTraversal).build();
+	let invisible_sizer = BoxSizer::builder(Orientation::Vertical).build();
+	let global_keys_checkbox = CheckBox::builder(&invisible_panel).with_label("Use the &invisible interface").build();
+	global_keys_checkbox.set_value(global_keys);
+	let repeat_edges_checkbox =
+		CheckBox::builder(&invisible_panel).with_label("&Repeat the post at the start or end of a timeline").build();
+	repeat_edges_checkbox.set_value(repeat_at_timeline_edges);
+	invisible_sizer.add(&global_keys_checkbox, 0, SizerFlag::Expand | SizerFlag::All, 8);
+	invisible_sizer.add(&repeat_edges_checkbox, 0, SizerFlag::Expand | SizerFlag::All, 8);
+	invisible_sizer.add_stretch_spacer(1);
+	invisible_panel.set_sizer(invisible_sizer, true);
+	// Global shortcuts only exist on Windows so far.
+	if cfg!(windows) {
+		notebook.add_page(&invisible_panel, "Invisible Interface", false, None);
+	} else {
+		invisible_panel.show(false);
+	}
 	let timeline_panel = Panel::builder(&notebook).with_style(PanelStyle::TabTraversal).build();
 	let timeline_sizer = BoxSizer::builder(Orientation::Vertical).build();
 	let restore_timelines_checkbox =
@@ -836,6 +848,7 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 		notification_preference: new_notification_preference,
 		disabled_notification_types: current_disabled_notification_types.borrow().clone(),
 		global_keys: global_keys_checkbox.get_value(),
+		repeat_at_timeline_edges: repeat_edges_checkbox.get_value(),
 		shortcuts: current_shortcuts.borrow().clone(),
 		templates: new_templates,
 		filters: filters_state.borrow().clone(),
