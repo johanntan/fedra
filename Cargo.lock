@@ -1225,9 +1225,9 @@ dependencies = [
 
 [[package]]
 name = "key-chord"
-version = "0.2.0"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "56c5c082292bb5bd92c69cd5abe3d0c8c2f9e8633a820670f7aaea1d04f87e09"
+checksum = "6172c100de39639f21f44799ad3002ad3b87c7ac67e0c94438e9479a0a0e6ac3"
 
 [[package]]
 name = "lazy_static"
@@ -3531,9 +3531,9 @@ checksum = "3ad82d2a33cdc9674dc7465672f271e096168fcdbe0f799d9e6db8c5892679dc"
 
 [[package]]
 name = "wx-utils"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "506220893277054a5d0798725888f3decb4e9c3daaf4d3285d7ff0ac438d92c0"
+checksum = "92cb0406267678a3fd8fcd060d708ccbcce6f639b1beb4741ce53df1254de16e"
 dependencies = [
  "key-chord",
  "live-region",
