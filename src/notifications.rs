@@ -1,7 +1,11 @@
+use std::path::{Path, PathBuf};
+
 use crate::{
 	AppState,
+	audio::AudioOutput,
 	config::NotificationPreference,
 	mastodon::{Notification, Status},
+	timeline::TimelineType,
 	ui::app_shell::AppShell,
 };
 
@@ -32,6 +36,13 @@ pub fn show_notification(app_shell: Option<&AppShell>, notification: &Notificati
 	show(app_shell, notification.account.display_name_or_username(), &notification.simple_display());
 }
 
+/// Plays `custom`, or the default notification sound when there's none.
+pub fn play_sound(sound: Option<&(AudioOutput, PathBuf)>, custom: Option<&Path>) {
+	if let Some((output, default)) = sound {
+		crate::audio::play_once(output, custom.unwrap_or(default));
+	}
+}
+
 /// Tells the user that `count` message requests are waiting, in the chosen notification style.
 pub fn notify_message_requests(state: &AppState, count: u64) {
 	match state.config.notification_preference {
@@ -53,12 +64,13 @@ pub fn notify_message_requests(state: &AppState, count: u64) {
 }
 
 /// Alerts once for a batch of new posts in timelines the user asked to be notified about, each
-/// paired with its timeline's name.
-pub fn notify_new_posts(state: &AppState, posts: &[(String, Status)]) {
-	let Some((timeline_name, status)) = posts.first() else { return };
+/// paired with its timeline.
+pub fn notify_new_posts(state: &AppState, posts: &[(TimelineType, Status)]) {
+	let Some((timeline, status)) = posts.first() else { return };
 	match state.config.notification_preference {
 		NotificationPreference::Classic => {
 			let app_shell = state.app_shell.as_deref();
+			let timeline_name = timeline.display_name();
 			if posts.len() == 1 {
 				let title = format!("{} in {timeline_name}", status.account.display_name_or_username());
 				show(app_shell, &title, &status.simple_display());
@@ -67,8 +79,13 @@ pub fn notify_new_posts(state: &AppState, posts: &[(String, Status)]) {
 			}
 		}
 		NotificationPreference::SoundOnly => {
-			if let Some((output, sound_path)) = &state.notification_sound {
-				crate::audio::play_once(output, sound_path);
+			let mut played = Vec::new();
+			for (timeline, _) in posts {
+				if !played.contains(&timeline) {
+					played.push(timeline);
+					let custom = state.active_account().and_then(|account| account.timeline_sound(timeline));
+					play_sound(state.notification_sound.as_ref(), custom);
+				}
 			}
 		}
 		NotificationPreference::Disabled => {}

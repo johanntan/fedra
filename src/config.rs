@@ -270,6 +270,8 @@ pub enum ActionId {
 	CloseTimeline,
 	TogglePermanentTimeline,
 	ToggleTimelineNotifications,
+	SetTimelineSound,
+	ResetTimelineSound,
 	ClearTimeline,
 	ClearAllTimelines,
 	Refresh,
@@ -341,6 +343,8 @@ impl ActionId {
 			Self::CloseTimeline,
 			Self::TogglePermanentTimeline,
 			Self::ToggleTimelineNotifications,
+			Self::SetTimelineSound,
+			Self::ResetTimelineSound,
 			Self::ClearTimeline,
 			Self::ClearAllTimelines,
 			Self::Refresh,
@@ -412,6 +416,8 @@ impl ActionId {
 			Self::CloseTimeline => "Close Timeline",
 			Self::TogglePermanentTimeline => "Make Timeline Permanent or Closable",
 			Self::ToggleTimelineNotifications => "Turn New Post Notifications On or Off",
+			Self::SetTimelineSound => "Set Notification Sound...",
+			Self::ResetTimelineSound => "Use the Default Notification Sound",
 			Self::ClearTimeline => "Clear Timeline",
 			Self::ClearAllTimelines => "Clear All Timelines",
 			Self::Refresh => "Refresh",
@@ -485,6 +491,7 @@ impl ActionId {
 				Self::CloseTimeline => Some(KeyChord::new(false, false, false, "Backspace")),
 				Self::TogglePermanentTimeline => Some(KeyChord::new(true, false, false, "P")),
 				Self::ToggleTimelineNotifications => Some(KeyChord::new(true, false, false, "N")),
+				Self::SetTimelineSound | Self::ResetTimelineSound => None,
 				Self::ClearTimeline => Some(KeyChord::new(true, false, false, "Delete")),
 				Self::ClearAllTimelines => Some(KeyChord::new(true, false, true, "Delete")),
 				Self::Refresh => Some(KeyChord::new(false, false, false, "F5")),
@@ -554,6 +561,7 @@ impl ActionId {
 				Self::CloseTimeline => Some(KeyChord::new(true, false, false, "W")),
 				Self::TogglePermanentTimeline => Some(KeyChord::new(true, false, true, "P")),
 				Self::ToggleTimelineNotifications => Some(KeyChord::new(true, false, true, "N")),
+				Self::SetTimelineSound | Self::ResetTimelineSound => None,
 				Self::ClearTimeline => Some(KeyChord::new(true, false, false, "Delete")),
 				Self::ClearAllTimelines => Some(KeyChord::new(true, false, true, "Delete")),
 				Self::Refresh => Some(KeyChord::new(false, false, false, "F5")),
@@ -1132,9 +1140,22 @@ pub struct Account {
 	pub permanent_timelines: Vec<crate::timeline::TimelineType>,
 	#[serde(default)]
 	pub notifying_timelines: Vec<crate::timeline::TimelineType>,
+	#[serde(default)]
+	pub timeline_sounds: Vec<TimelineSound>,
+}
+
+/// A sound the user picked for one timeline's notifications, in place of the default.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TimelineSound {
+	pub timeline: crate::timeline::TimelineType,
+	pub path: PathBuf,
 }
 
 impl Account {
+	pub fn timeline_sound(&self, timeline: &crate::timeline::TimelineType) -> Option<&Path> {
+		self.timeline_sounds.iter().find(|sound| sound.timeline == *timeline).map(|sound| sound.path.as_path())
+	}
+
 	pub fn new(instance: String) -> Self {
 		Self {
 			id: new_account_id(),
@@ -1151,6 +1172,7 @@ impl Account {
 			saved_selected_post_id: None,
 			permanent_timelines: Vec::new(),
 			notifying_timelines: Vec::new(),
+			timeline_sounds: Vec::new(),
 		}
 	}
 

@@ -25,7 +25,8 @@ pub fn process_stream_events(
 	let mut mention_forwards: Vec<Box<crate::mastodon::Notification>> = Vec::new();
 	let mut own_post_forwards: Vec<Box<Status>> = Vec::new();
 	let mut own_delete_forwards: Vec<String> = Vec::new();
-	let mut new_post_alerts: Vec<(String, Status)> = Vec::new();
+	let mut new_post_alerts: Vec<(TimelineType, Status)> = Vec::new();
+	let timeline_sounds = state.active_account().map(|a| a.timeline_sounds.clone()).unwrap_or_default();
 	let notifying_timelines = state.active_account().map(|a| a.notifying_timelines.clone()).unwrap_or_default();
 	for timeline in state.timeline_manager.iter_mut() {
 		let Some(handle) = &timeline.stream_handle else { continue };
@@ -56,7 +57,7 @@ pub fn process_stream_events(
 						&& !timeline.entries.iter().any(|entry| entry.id() == status.id)
 					{
 						if notifying && current_user_id != Some(status.account.id.as_str()) {
-							new_post_alerts.push((timeline.timeline_type.display_name(), (*status).clone()));
+							new_post_alerts.push((timeline.timeline_type.clone(), (*status).clone()));
 						}
 						timeline.entries.insert(0, TimelineEntry::Status(Box::new(*status)));
 						if is_active {
@@ -96,9 +97,11 @@ pub fn process_stream_events(
 										);
 									}
 									crate::config::NotificationPreference::SoundOnly => {
-										if let Some((output, sound_path)) = &state.notification_sound {
-											crate::audio::play_once(output, sound_path);
-										}
+										let custom = timeline_sounds
+											.iter()
+											.find(|sound| sound.timeline == timeline.timeline_type)
+											.map(|sound| sound.path.as_path());
+										crate::notifications::play_sound(state.notification_sound.as_ref(), custom);
 									}
 									crate::config::NotificationPreference::Disabled => {}
 								}
@@ -139,7 +142,7 @@ pub fn process_stream_events(
 							});
 						}
 						if notifying && current_user_id != Some(status.account.id.as_str()) {
-							new_post_alerts.push((timeline.timeline_type.display_name(), status.clone()));
+							new_post_alerts.push((timeline.timeline_type.clone(), status.clone()));
 						}
 						timeline.entries.insert(0, TimelineEntry::Status(Box::new(status)));
 						if is_active {

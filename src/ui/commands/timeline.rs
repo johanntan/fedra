@@ -2,6 +2,7 @@
 
 use std::{
 	cell::Cell,
+	path::PathBuf,
 	time::{Duration, Instant},
 };
 
@@ -14,7 +15,7 @@ use super::{
 use crate::{
 	AppState,
 	accounts::{start_streaming_for_timeline, update_window_title},
-	config::SortOrder,
+	config::{SortOrder, TimelineSound},
 	mastodon::Status,
 	network::NetworkCommand,
 	timeline::{TimelineEntry, TimelineType},
@@ -301,6 +302,50 @@ pub(super) fn toggle_notifications(ctx: &mut UiCommandContext<'_>) {
 	};
 	let _ = state.save_config();
 	ctx.live_region.announce(if notifying { "Notifications on" } else { "Notifications off" });
+}
+
+pub(super) fn set_sound(ctx: &mut UiCommandContext<'_>) {
+	let state = &mut *ctx.state;
+	let Some(active_type) = state.timeline_manager.active().map(|t| t.timeline_type.clone()) else {
+		return;
+	};
+	let dialog = FileDialog::builder(ctx.frame)
+		.with_message(&format!("Choose a notification sound for {}", active_type.display_name()))
+		.with_wildcard("Sound files|*.mp3;*.ogg;*.oga;*.wav;*.flac;*.m4a|All files|*.*")
+		.with_style(FileDialogStyle::Open | FileDialogStyle::FileMustExist)
+		.build();
+	if dialog.show_modal() != ID_OK {
+		return;
+	}
+	let Some(path) = dialog.get_path().map(PathBuf::from) else {
+		return;
+	};
+	let Some(account) = state.active_account_mut() else {
+		return;
+	};
+	account.timeline_sounds.retain(|sound| sound.timeline != active_type);
+	account.timeline_sounds.push(TimelineSound { timeline: active_type, path: path.clone() });
+	let _ = state.save_config();
+	ctx.live_region.announce("Sound set");
+	crate::notifications::play_sound(state.notification_sound.as_ref(), Some(&path));
+}
+
+pub(super) fn reset_sound(ctx: &mut UiCommandContext<'_>) {
+	let state = &mut *ctx.state;
+	let Some(active_type) = state.timeline_manager.active().map(|t| t.timeline_type.clone()) else {
+		return;
+	};
+	let Some(account) = state.active_account_mut() else {
+		return;
+	};
+	let before = account.timeline_sounds.len();
+	account.timeline_sounds.retain(|sound| sound.timeline != active_type);
+	if account.timeline_sounds.len() == before {
+		ctx.live_region.announce("This timeline already uses the default sound");
+		return;
+	}
+	let _ = state.save_config();
+	ctx.live_region.announce("Using the default sound");
 }
 
 /// Empties the active timeline, or every open one, in Fedra only. Posts that arrive afterwards

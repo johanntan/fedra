@@ -9,10 +9,11 @@ use crate::{
 	ID_LOCAL_TIMELINE, ID_MANAGE_ACCOUNTS, ID_MANAGE_FILTERS, ID_MANAGE_LISTS, ID_MENTIONS_TIMELINE,
 	ID_MESSAGE_REQUESTS, ID_NEW_POST, ID_NOTIFICATIONS_TIMELINE, ID_OPEN_INSTANCE_TIMELINE_BY_INPUT, ID_OPEN_LINKS,
 	ID_OPEN_LIST, ID_OPEN_USER_TIMELINE_BY_INPUT, ID_OPTIONS, ID_PIN_POST, ID_PLAY_MEDIA, ID_QUOTE, ID_REFRESH,
-	ID_REPLY, ID_REPLY_AUTHOR, ID_SEARCH, ID_SENT_TIMELINE, ID_TOGGLE_FOLLOW, ID_TOGGLE_PERMANENT_TIMELINE,
-	ID_TOGGLE_TIMELINE_NOTIFICATIONS, ID_VIEW_BOOSTS, ID_VIEW_FAVORITES, ID_VIEW_HASHTAGS, ID_VIEW_HELP,
-	ID_VIEW_IN_BROWSER, ID_VIEW_MENTIONS, ID_VIEW_POST, ID_VIEW_PROFILE, ID_VIEW_QUOTED_THREAD, ID_VIEW_THREAD,
-	ID_VIEW_USER_TIMELINE, ID_VOTE, config::ActionId, ui::commands::get_selected_status,
+	ID_REPLY, ID_REPLY_AUTHOR, ID_RESET_TIMELINE_SOUND, ID_SEARCH, ID_SENT_TIMELINE, ID_SET_TIMELINE_SOUND,
+	ID_TOGGLE_FOLLOW, ID_TOGGLE_PERMANENT_TIMELINE, ID_TOGGLE_TIMELINE_NOTIFICATIONS, ID_VIEW_BOOSTS,
+	ID_VIEW_FAVORITES, ID_VIEW_HASHTAGS, ID_VIEW_HELP, ID_VIEW_IN_BROWSER, ID_VIEW_MENTIONS, ID_VIEW_POST,
+	ID_VIEW_PROFILE, ID_VIEW_QUOTED_THREAD, ID_VIEW_THREAD, ID_VIEW_USER_TIMELINE, ID_VOTE, config::ActionId,
+	ui::commands::get_selected_status,
 };
 
 pub fn build_menu_bar() -> MenuBar {
@@ -168,6 +169,16 @@ pub fn build_menu_bar() -> MenuBar {
 			ID_TOGGLE_TIMELINE_NOTIFICATIONS,
 			"Turn New Post &Notifications On or Off",
 			"Get notified of new posts in the current timeline",
+		)
+		.append_item(
+			ID_SET_TIMELINE_SOUND,
+			"Set Notification S&ound...",
+			"Pick the sound this timeline's notifications play",
+		)
+		.append_item(
+			ID_RESET_TIMELINE_SOUND,
+			"Use the Default Notification Sound",
+			"Go back to the usual notification sound",
 		)
 		.append_item(ID_CLEAR_TIMELINE, "Cl&ear Timeline", "Empty the current timeline")
 		.append_item(ID_CLEAR_ALL_TIMELINES, "Clear All &Timelines", "Empty every open timeline")
@@ -501,6 +512,18 @@ pub fn update_menu_labels(menu_bar: &MenuBar, state: &AppState) {
 		ID_TOGGLE_TIMELINE_NOTIFICATIONS,
 		"Turn New Post &Notifications On or Off",
 		&sc.get_menu_str(q, ActionId::ToggleTimelineNotifications),
+	);
+	set_item_label(
+		menu_bar,
+		ID_SET_TIMELINE_SOUND,
+		"Set Notification S&ound...",
+		&sc.get_menu_str(q, ActionId::SetTimelineSound),
+	);
+	set_item_label(
+		menu_bar,
+		ID_RESET_TIMELINE_SOUND,
+		"Use the Default Notification Sound",
+		&sc.get_menu_str(q, ActionId::ResetTimelineSound),
 	);
 	set_item_label(menu_bar, ID_CLEAR_TIMELINE, "Cl&ear Timeline", &sc.get_menu_str(q, ActionId::ClearTimeline));
 	set_item_label(
