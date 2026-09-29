@@ -10,24 +10,32 @@ use crate::{
 	template::{DEFAULT_BOOST_TEMPLATE, DEFAULT_FAVORITE_TEMPLATE, DEFAULT_POST_TEMPLATE},
 };
 
+/// Asks which notification types show in timelines and which of them alert, returning the hidden
+/// and the silent ones.
 pub fn prompt_for_notification_types(
 	parent: &dyn WxWidget,
-	initial_disabled: &[NotificationKind],
-) -> Option<Vec<NotificationKind>> {
-	let dialog = Dialog::builder(parent, "Notification Types").with_size(350, 340).build();
+	initial_hidden: &[NotificationKind],
+	initial_silent: &[NotificationKind],
+) -> Option<(Vec<NotificationKind>, Vec<NotificationKind>)> {
+	let dialog = Dialog::builder(parent, "Notification Types").with_size(560, 400).build();
 	let panel = Panel::builder(&dialog).build();
 	let main_sizer = BoxSizer::builder(Orientation::Vertical).build();
-	let info_label = StaticText::builder(&panel)
-		.with_label("Choose which notification types to receive (sound, popup, and timeline):")
-		.build();
-	main_sizer.add(&info_label, 0, SizerFlag::Expand | SizerFlag::All, 10);
-	let mut checkboxes = Vec::new();
-	for kind in NotificationKind::all() {
-		let cb = CheckBox::builder(&panel).with_label(kind.display_name()).build();
-		cb.set_value(!initial_disabled.contains(kind));
-		main_sizer.add(&cb, 0, SizerFlag::Expand | SizerFlag::Left | SizerFlag::Right | SizerFlag::Bottom, 10);
-		checkboxes.push((cb, *kind));
-	}
+	let groups_sizer = BoxSizer::builder(Orientation::Horizontal).build();
+	let group = |label: &str, initially_off: &[NotificationKind]| {
+		let sizer = StaticBoxSizerBuilder::new_with_label(Orientation::Vertical, &panel, label).build();
+		let mut checkboxes = Vec::new();
+		for kind in NotificationKind::all() {
+			let cb = CheckBox::builder(&panel).with_label(kind.display_name()).build();
+			cb.set_value(!initially_off.contains(kind));
+			sizer.add(&cb, 0, SizerFlag::Expand | SizerFlag::Left | SizerFlag::Right | SizerFlag::Bottom, 5);
+			checkboxes.push((cb, *kind));
+		}
+		groups_sizer.add_sizer(&sizer, 1, SizerFlag::Expand | SizerFlag::All, 5);
+		checkboxes
+	};
+	let shown = group("Show in timelines", initial_hidden);
+	let alerting = group("Alert me with a sound or notification", initial_silent);
+	main_sizer.add_sizer(&groups_sizer, 1, SizerFlag::Expand | SizerFlag::All, 5);
 	let button_sizer = BoxSizer::builder(Orientation::Horizontal).build();
 	let ok_button = Button::builder(&panel).with_id(ID_OK).with_label("OK").build();
 	ok_button.set_default();
@@ -43,17 +51,13 @@ pub fn prompt_for_notification_types(
 	dialog.set_affirmative_id(ID_OK);
 	dialog.set_escape_id(ID_CANCEL);
 	dialog.centre();
-	if dialog.show_modal() == ID_OK {
-		let mut disabled = Vec::new();
-		for (cb, kind) in checkboxes {
-			if !cb.get_value() {
-				disabled.push(kind);
-			}
-		}
-		Some(disabled)
-	} else {
-		None
+	if dialog.show_modal() != ID_OK {
+		return None;
 	}
+	let unchecked = |checkboxes: Vec<(CheckBox, NotificationKind)>| {
+		checkboxes.into_iter().filter(|(cb, _)| !cb.get_value()).map(|(_, kind)| kind).collect()
+	};
+	Some((unchecked(shown), unchecked(alerting)))
 }
 
 pub fn prompt_for_default_timelines(
@@ -122,6 +126,7 @@ pub struct OptionsDialogInput {
 	pub load_older_to_restore: bool,
 	pub notification_preference: NotificationPreference,
 	pub disabled_notification_types: Vec<NotificationKind>,
+	pub silent_notification_types: Vec<NotificationKind>,
 	pub global_keys: bool,
 	pub repeat_at_timeline_edges: bool,
 	pub shortcuts: crate::config::ShortcutsConfig,
@@ -152,6 +157,7 @@ pub struct OptionsDialogResult {
 	pub load_older_to_restore: bool,
 	pub notification_preference: NotificationPreference,
 	pub disabled_notification_types: Vec<NotificationKind>,
+	pub silent_notification_types: Vec<NotificationKind>,
 	pub global_keys: bool,
 	pub repeat_at_timeline_edges: bool,
 	pub shortcuts: crate::config::ShortcutsConfig,
@@ -184,6 +190,7 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 		load_older_to_restore,
 		notification_preference,
 		disabled_notification_types,
+		silent_notification_types,
 		global_keys,
 		repeat_at_timeline_edges,
 		shortcuts,
@@ -237,12 +244,12 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 	notification_sizer.add(&notification_label, 0, SizerFlag::AlignCenterVertical | SizerFlag::Right, 8);
 	notification_sizer.add(&notification_choice, 1, SizerFlag::Expand, 0);
 	let notification_types_button = Button::builder(&general_panel).with_label("Notification &Types...").build();
-	let current_disabled_notification_types = Rc::new(RefCell::new(disabled_notification_types));
-	let disabled_types_clone = current_disabled_notification_types.clone();
+	let current_notification_types = Rc::new(RefCell::new((disabled_notification_types, silent_notification_types)));
+	let types_clone = current_notification_types.clone();
 	notification_types_button.on_click(move |_| {
-		let initial = disabled_types_clone.borrow().clone();
-		if let Some(updated) = prompt_for_notification_types(&dialog, &initial) {
-			*disabled_types_clone.borrow_mut() = updated;
+		let (hidden, silent) = types_clone.borrow().clone();
+		if let Some(updated) = prompt_for_notification_types(&dialog, &hidden, &silent) {
+			*types_clone.borrow_mut() = updated;
 		}
 	});
 	general_sizer.add(&enter_checkbox, 0, SizerFlag::Expand | SizerFlag::All, 8);
@@ -846,7 +853,8 @@ pub fn prompt_for_options(frame: &Frame, input: OptionsDialogInput) -> Option<Op
 		preserve_thread_order: thread_order_checkbox.get_value(),
 		default_timelines: current_defaults.borrow().clone(),
 		notification_preference: new_notification_preference,
-		disabled_notification_types: current_disabled_notification_types.borrow().clone(),
+		disabled_notification_types: current_notification_types.borrow().0.clone(),
+		silent_notification_types: current_notification_types.borrow().1.clone(),
 		global_keys: global_keys_checkbox.get_value(),
 		repeat_at_timeline_edges: repeat_edges_checkbox.get_value(),
 		shortcuts: current_shortcuts.borrow().clone(),

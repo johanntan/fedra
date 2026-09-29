@@ -54,6 +54,9 @@ pub struct Config {
 	pub notification_preference: NotificationPreference,
 	#[serde(default)]
 	pub disabled_notification_types: Vec<NotificationKind>,
+	/// Types that still show in timelines but never make a sound or notification.
+	#[serde(default)]
+	pub silent_notification_types: Vec<NotificationKind>,
 	#[serde(default = "default_check_for_updates")]
 	pub check_for_updates_on_startup: bool,
 	#[serde(default)]
@@ -104,6 +107,11 @@ impl Config {
 	/// (sound/toast and the notification timeline). Unrecognized kinds are always enabled.
 	pub fn notification_kind_enabled(&self, kind: &str) -> bool {
 		NotificationKind::from_api_kind(kind).is_none_or(|k| !self.disabled_notification_types.contains(&k))
+	}
+
+	pub fn notification_kind_alerts(&self, kind: &str) -> bool {
+		self.notification_kind_enabled(kind)
+			&& NotificationKind::from_api_kind(kind).is_none_or(|k| !self.silent_notification_types.contains(&k))
 	}
 }
 
@@ -1078,6 +1086,7 @@ impl Default for Config {
 			default_timelines: default_timelines(),
 			notification_preference: NotificationPreference::default(),
 			disabled_notification_types: Vec::new(),
+			silent_notification_types: Vec::new(),
 			check_for_updates_on_startup: true,
 			update_channel: UpdateChannel::default(),
 			legacy_hotkey: None,

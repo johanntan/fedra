@@ -84,8 +84,9 @@ pub fn process_stream_events(
 					}
 					if timeline.timeline_type == timeline_type {
 						let type_enabled = state.config.notification_kind_enabled(&notification.kind);
+						let type_alerts = state.config.notification_kind_alerts(&notification.kind);
 						if !processed_notification_ids.contains(&notification.id) {
-							if type_enabled {
+							if type_alerts {
 								let pref = state.config.notification_preference;
 								match pref {
 									crate::config::NotificationPreference::Classic => {

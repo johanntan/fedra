@@ -41,6 +41,7 @@ pub(super) fn show_options(ctx: &mut UiCommandContext<'_>) {
 			load_older_to_restore: state.config.load_older_to_restore,
 			notification_preference: state.config.notification_preference,
 			disabled_notification_types: state.config.disabled_notification_types.clone(),
+			silent_notification_types: state.config.silent_notification_types.clone(),
 			global_keys: state.config.global_keys,
 			repeat_at_timeline_edges: state.config.repeat_at_timeline_edges,
 			shortcuts: state.config.shortcuts.clone(),
@@ -70,6 +71,7 @@ pub(super) fn show_options(ctx: &mut UiCommandContext<'_>) {
 			load_older_to_restore,
 			notification_preference,
 			disabled_notification_types,
+			silent_notification_types,
 			global_keys,
 			repeat_at_timeline_edges,
 			shortcuts,
@@ -107,6 +109,7 @@ pub(super) fn show_options(ctx: &mut UiCommandContext<'_>) {
 		state.config.load_older_to_restore = load_older_to_restore;
 		state.config.notification_preference = notification_preference;
 		state.config.disabled_notification_types = disabled_notification_types;
+		state.config.silent_notification_types = silent_notification_types;
 		state.config.global_keys = global_keys;
 		state.config.repeat_at_timeline_edges = repeat_at_timeline_edges;
 		state.config.shortcuts = shortcuts;

@@ -128,7 +128,7 @@ Open options with `Ctrl+,`.
   - Operating system notifications
   - Sound only
   - Disabled
-- `Notification Types...`: choose which notification types to receive (sound, popup, and timeline). All are checked by default; unchecking one hides it from the notification sound/popup and from the Notifications timeline entirely.
+- `Notification Types...`: choose which notification types you get, in two groups. `Show in timelines` decides which types appear in the Notifications timeline at all. `Alert me with a sound or notification` decides which of those also make a sound or show a notification, so you can, for example, keep favorites and boosts in the timeline to review later without being interrupted by them. Everything is checked by default.
   - Mentions
   - Boosts
   - Favorites
