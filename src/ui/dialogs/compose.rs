@@ -1229,7 +1229,7 @@ pub fn prompt_for_reply(
 		let mut accts = Vec::new();
 		let self_acct = self_acct.map(|acct| acct.trim().trim_start_matches('@')).filter(|acct| !acct.is_empty());
 		if let Some(self_acct) = self_acct {
-			if !self_acct.eq_ignore_ascii_case(replying_to.account.full_acct().trim().trim_start_matches('@')) {
+			if !is_self_account(self_acct, &replying_to.account) {
 				accts.push(replying_to.account.full_acct());
 			}
 		} else {
@@ -1249,9 +1249,9 @@ pub fn prompt_for_reply(
 		accts.iter().map(|a| format!("@{a}")).collect::<Vec<_>>().join(" ") + " "
 	} else {
 		let author_acct = replying_to.account.full_acct();
-		let is_self = self_acct.map(|acct| acct.trim().trim_start_matches('@')).is_some_and(|acct| {
-			!acct.is_empty() && acct.eq_ignore_ascii_case(author_acct.trim().trim_start_matches('@'))
-		});
+		let is_self = self_acct
+			.map(|acct| acct.trim().trim_start_matches('@'))
+			.is_some_and(|acct| !acct.is_empty() && is_self_account(acct, &replying_to.account));
 		if is_self { String::new() } else { format!("@{author_acct} ") }
 	};
 	let default_visibility = match replying_to.visibility.as_str() {
@@ -1378,6 +1378,18 @@ pub fn prompt_for_quote(
 		None,
 		mention_source,
 	)
+}
+
+fn is_self_account(self_acct: &str, account: &crate::mastodon::Account) -> bool {
+	let full = account.full_acct();
+	let full = full.trim().trim_start_matches('@');
+	if self_acct.eq_ignore_ascii_case(full) {
+		return true;
+	}
+	if self_acct.contains('@') {
+		return false;
+	}
+	self_acct.eq_ignore_ascii_case(account.acct.trim().trim_start_matches('@'))
 }
 
 fn is_self_mention(self_acct: &str, mention: &crate::mastodon::Mention) -> bool {
