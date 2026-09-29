@@ -6,7 +6,7 @@ use std::{
 	path::{Path, PathBuf},
 };
 
-use shipfitter::package::cargo_build_release;
+use shipfitter::{package::cargo_build_release, sign::Minisign};
 
 fn main() -> Result<(), Box<dyn Error>> {
 	if env::args().nth(1).as_deref() == Some("release") {
@@ -29,12 +29,21 @@ fn release() -> Result<(), Box<dyn Error>> {
 	if !exe_path.exists() {
 		return Err("Executable not found".into());
 	}
+	// Load the signing keys before building anything, so a broken secret fails fast.
+	let minisign = Minisign::from_env()?;
 	println!("Packaging binaries and docs...");
-	package(&root, &target_dir, &exe_path)
+	let artifacts = package(&root, &target_dir, &exe_path)?;
+	if let Some(minisign) = minisign {
+		for artifact in &artifacts {
+			println!("Signed {}", minisign.sign(artifact)?.display());
+		}
+	}
+	Ok(())
 }
 
+/// Builds the release files, returning the ones to publish.
 #[cfg(not(target_os = "macos"))]
-fn package(root: &Path, target_dir: &Path, exe_path: &Path) -> Result<(), Box<dyn Error>> {
+fn package(root: &Path, target_dir: &Path, exe_path: &Path) -> Result<Vec<PathBuf>, Box<dyn Error>> {
 	use shipfitter::{
 		host_arch_suffix,
 		package::{Zip, inno_setup},
@@ -52,20 +61,30 @@ fn package(root: &Path, target_dir: &Path, exe_path: &Path) -> Result<(), Box<dy
 	zip.dir(&root.join("sounds"), "sounds")?;
 	zip.finish()?;
 	println!("Created zip: {}", zip_path.display());
+	let mut artifacts = vec![zip_path];
 	if cfg!(windows) && inno_setup(&target_dir.join("fedra.iss"))? {
 		println!("Installer created successfully.");
+		artifacts.push(target_dir.join(format!("fedra_setup-{}.exe", host_arch_suffix())));
 	}
-	Ok(())
+	Ok(artifacts)
 }
 
+/// Builds the release files, returning the ones to publish.
 #[cfg(target_os = "macos")]
-fn package(root: &Path, target_dir: &Path, exe_path: &Path) -> Result<(), Box<dyn Error>> {
+fn package(root: &Path, target_dir: &Path, exe_path: &Path) -> Result<Vec<PathBuf>, Box<dyn Error>> {
 	use shipfitter::{
 		host_arch_suffix,
-		macos::{MacApp, dmg, sign},
+		macos::{DeveloperId, Keychain, MacApp, Notary, dmg, sign_bundle},
+		package::crate_version,
 	};
 
-	let version = package_version(root)?;
+	let keychain = Keychain::import_from_env()?;
+	let signer = keychain.as_ref().map(Keychain::signer).or_else(DeveloperId::from_env);
+	let notary = Notary::from_env()?;
+	if notary.is_some() && signer.is_none() {
+		return Err("notarizing needs a signed app; set MACOS_CERTIFICATE_P12_BASE64 or MACOS_SIGN_IDENTITY".into());
+	}
+	let version = crate_version(root, "fedra")?;
 	let app = MacApp {
 		name: "Fedra",
 		identifier: "com.trypsynth.fedra",
@@ -82,19 +101,16 @@ fn package(root: &Path, target_dir: &Path, exe_path: &Path) -> Result<(), Box<dy
 		println!("Warning: readme.html not found, skipping.");
 	}
 	let bundle = app.bundle(target_dir, exe_path, &[], &resources)?;
-	sign(&bundle, &[])?;
+	match &signer {
+		Some(signer) => sign_bundle(&bundle, &[], signer)?,
+		None => println!("No signing certificate, so the app keeps its ad hoc signature."),
+	}
 	println!("Built app: {}", bundle.display());
 	let dmg_path = target_dir.join(format!("fedra-{}.dmg", host_arch_suffix()));
 	dmg(&bundle, &dmg_path)?;
 	println!("Created DMG: {}", dmg_path.display());
-	Ok(())
-}
-
-#[cfg(target_os = "macos")]
-fn package_version(root: &Path) -> Result<String, Box<dyn Error>> {
-	let manifest = std::fs::read_to_string(root.join("Cargo.toml"))?;
-	manifest
-		.lines()
-		.find_map(|line| line.strip_prefix("version = \"")?.strip_suffix('"').map(str::to_string))
-		.ok_or_else(|| "no version in Cargo.toml".into())
+	if let Some(notary) = notary {
+		notary.notarize(&dmg_path)?;
+	}
+	Ok(vec![dmg_path])
 }

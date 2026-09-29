@@ -39,9 +39,9 @@ jobs:
       with:
         toolchain: stable
         components: rustfmt, clippy
-    - name: Install CMake, Ninja, and minisign
+    - name: Install CMake and Ninja
       run: |
-        choco install cmake ninja minisign -y
+        choco install cmake ninja -y
     # Fedra builds against wxWidgets master for fixes that aren't in a release yet.
     # The clone is cached per master commit, so a new commit is picked up on the next run.
     - name: Find wxWidgets master
@@ -57,24 +57,12 @@ jobs:
     - name: Clone wxWidgets master
       if: steps.wxwidgets-cache.outputs.cache-hit != 'true'
       run: git clone --depth 1 --recurse-submodules --shallow-submodules https://github.com/wxWidgets/wxWidgets.git
-    - name: Build
+    - name: Build and sign
       env:
         WXWIDGETS_DIR: ${{ github.workspace }}/wxWidgets
-      run: |
-        cargo release
-    - name: Sign artifacts
-      shell: pwsh
-      env:
         MINISIGN_KEY: ${{ secrets.MINISIGN_KEY }}
         MINISIGN_PASSWORD: ${{ secrets.MINISIGN_PASSWORD }}
-      run: |
-        $keyPath = Join-Path $env:RUNNER_TEMP "fedra.key"
-        [IO.File]::WriteAllText($keyPath, $env:MINISIGN_KEY)
-        $pwPath = Join-Path $env:RUNNER_TEMP "fedra.pw"
-        [IO.File]::WriteAllText($pwPath, $env:MINISIGN_PASSWORD)
-        Get-Content $pwPath | minisign -S -s $keyPath -m target/release/fedra_setup-${{ matrix.arch }}.exe
-        Get-Content $pwPath | minisign -S -s $keyPath -m target/release/fedra-${{ matrix.arch }}.zip
-        Remove-Item $keyPath, $pwPath
+      run: cargo release
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -102,8 +90,8 @@ jobs:
       uses: dtolnay/rust-toolchain@stable
       with:
         toolchain: stable
-    - name: Install CMake, Ninja, and minisign
-      run: brew install cmake ninja minisign
+    - name: Install CMake and Ninja
+      run: brew install cmake ninja
     - name: Find wxWidgets master
       id: wxwidgets
       run: echo "sha=$(git ls-remote https://github.com/wxWidgets/wxWidgets.git HEAD | cut -f1)" >> "$GITHUB_OUTPUT"
@@ -116,73 +104,16 @@ jobs:
     - name: Clone wxWidgets master
       if: steps.wxwidgets-cache.outputs.cache-hit != 'true'
       run: git clone --depth 1 --recurse-submodules --shallow-submodules https://github.com/wxWidgets/wxWidgets.git
-    - name: Import signing certificate
-      if: env.MACOS_CERTIFICATE_P12_BASE64 != ''
-      env:
-        MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
-        MACOS_KEYCHAIN_PASSWORD: ${{ secrets.MACOS_KEYCHAIN_PASSWORD }}
-      run: |
-        CERT_PATH="$RUNNER_TEMP/fedra-signing.p12"
-        KEYCHAIN_PATH="$RUNNER_TEMP/fedra-signing.keychain-db"
-        echo "$MACOS_CERTIFICATE_P12_BASE64" | base64 -D -o "$CERT_PATH"
-        security create-keychain -p "$MACOS_KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-        security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
-        security unlock-keychain -p "$MACOS_KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-        security import "$CERT_PATH" -P "$MACOS_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
-        security list-keychain -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | sed 's/"//g')
-        security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$MACOS_KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-        IDENTITY=$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" | grep "Developer ID Application" | head -1 | sed -E 's/.*"(.*)"/\1/')
-        if [ -z "$IDENTITY" ]; then
-          echo "No Developer ID Application identity found in the imported certificate" >&2
-          exit 1
-        fi
-        echo "MACOS_SIGN_IDENTITY=$IDENTITY" >> "$GITHUB_ENV"
-        echo "MACOS_KEYCHAIN_PATH=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
-        rm -f "$CERT_PATH"
-    - name: Build
+    - name: Build, sign, and notarize
       env:
         WXWIDGETS_DIR: ${{ github.workspace }}/wxWidgets
         MACOSX_DEPLOYMENT_TARGET: "13.0"
-      run: cargo release
-    - name: Notarize and staple DMG
-      if: env.MACOS_CERTIFICATE_P12_BASE64 != '' && env.APPSTORE_API_KEY_BASE64 != ''
-      env:
+        MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
         APPSTORE_API_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
         APPSTORE_API_ISSUER_ID: ${{ secrets.APPSTORE_API_ISSUER_ID }}
-      run: |
-        KEY_ID=$(printf '%s' "$APPSTORE_API_KEY_ID" | tr -d '[:space:]')
-        ISSUER_ID=$(printf '%s' "$APPSTORE_API_ISSUER_ID" | tr -d '[:space:]')
-        KEY_PATH="$RUNNER_TEMP/AppStoreConnectAPIKey.p8"
-        echo "$APPSTORE_API_KEY_BASE64" | base64 -D -o "$KEY_PATH"
-        set +e
-        xcrun notarytool submit target/release/fedra-arm64.dmg \
-          --key "$KEY_PATH" --key-id "$KEY_ID" --issuer "$ISSUER_ID" \
-          --wait --output-format json | tee notarization-result.json
-        SUBMIT_STATUS=$?
-        set -e
-        SUBMISSION_ID=$(jq -r '.id // empty' notarization-result.json)
-        RESULT=$(jq -r '.status // empty' notarization-result.json)
-        if [ "$SUBMIT_STATUS" -ne 0 ] || [ "$RESULT" != "Accepted" ]; then
-          if [ -n "$SUBMISSION_ID" ]; then
-            xcrun notarytool log "$SUBMISSION_ID" --key "$KEY_PATH" --key-id "$KEY_ID" --issuer "$ISSUER_ID"
-          fi
-          rm -f "$KEY_PATH"
-          exit 1
-        fi
-        xcrun stapler staple target/release/fedra-arm64.dmg
-        rm -f "$KEY_PATH"
-    - name: Sign artifacts
-      env:
         MINISIGN_KEY: ${{ secrets.MINISIGN_KEY }}
         MINISIGN_PASSWORD: ${{ secrets.MINISIGN_PASSWORD }}
-      run: |
-        KEY_PATH="$RUNNER_TEMP/fedra.key"
-        printf '%s' "$MINISIGN_KEY" > "$KEY_PATH"
-        printf '%s' "$MINISIGN_PASSWORD" | minisign -S -s "$KEY_PATH" -m target/release/fedra-arm64.dmg
-        rm -f "$KEY_PATH"
-    - name: Clean up signing keychain
-      if: always() && env.MACOS_KEYCHAIN_PATH != ''
-      run: security delete-keychain "$MACOS_KEYCHAIN_PATH" || true
+      run: cargo release
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
