@@ -36,6 +36,11 @@ pub fn append_relationship_text(text: &mut String, relationship: &Relationship, 
 			(false, false) => "You do not follow each other.",
 		};
 		let _ = writeln!(body, "{follow_status}");
+		// Mastodon's default policy files private mentions from people the recipient doesn't
+		// follow as message requests, and nothing tells the sender.
+		if !relationship.followed_by && !relationship.blocking {
+			body.push_str("Your direct messages may reach them as a message request, since they don't follow you.\r\n");
+		}
 	}
 	if relationship.requested {
 		body.push_str("You have requested to follow this person.\r\n");
