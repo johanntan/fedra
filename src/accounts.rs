@@ -110,6 +110,7 @@ pub fn switch_to_account(
 	if let Some(new_id) = new_account_id {
 		crate::read_position::sync(state);
 		state.synced_markers.clear();
+		state.pending_message_requests = None;
 		if let Some(old_id) = state.config.active_account_id.clone() {
 			for timeline in state.timeline_manager.iter_mut() {
 				timeline.stream_handle = None;
@@ -181,10 +182,11 @@ pub fn switch_to_account(
 		.unwrap_or_default();
 	if first_load {
 		// Asked for before any timeline, so the markers arrive first and restoring can use them.
-		if state.config.sync_read_position
-			&& let Some(handle) = &state.network_handle
-		{
-			handle.send(NetworkCommand::FetchMarkers);
+		if let Some(handle) = &state.network_handle {
+			if state.config.sync_read_position {
+				handle.send(NetworkCommand::FetchMarkers);
+			}
+			handle.send(NetworkCommand::FetchNotificationPolicy);
 		}
 		let mut loaded_saved = false;
 		let default_timelines = state.config.default_timelines.clone();

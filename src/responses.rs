@@ -166,7 +166,14 @@ fn handle_response(
 		NetworkResponse::PollVoted { result } => statuses::poll_voted(ctx, result),
 		NetworkResponse::TagFollowed { name, result } => tags::following_changed(ctx, &name, &result, true),
 		NetworkResponse::MarkersLoaded(Ok(markers)) => crate::read_position::apply_markers(ctx.state, markers),
-		NetworkResponse::MarkersLoaded(Err(_)) => {}
+		// Servers before Mastodon 4.3 have no notification policy, and so no requests.
+		NetworkResponse::MarkersLoaded(Err(_)) | NetworkResponse::NotificationPolicyLoaded(Err(_)) => {}
+		NetworkResponse::NotificationPolicyLoaded(Ok(policy)) => {
+			let count = policy.summary.pending_requests_count;
+			if count > ctx.state.pending_message_requests.replace(count).unwrap_or(0) {
+				crate::notifications::notify_message_requests(ctx.state, count);
+			}
+		}
 		NetworkResponse::TagUnfollowed { name, result } => tags::following_changed(ctx, &name, &result, false),
 		NetworkResponse::TagMuted { name, result } => tags::muted_changed(ctx, &name, &result, true),
 		NetworkResponse::TagUnmuted { name, result } => tags::muted_changed(ctx, &name, &result, false),

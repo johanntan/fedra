@@ -4,7 +4,7 @@ use anyhow::Result;
 use serde::Deserialize;
 
 use crate::{
-	mastodon::{Conversation, MastodonClient, Notification, Status},
+	mastodon::{Conversation, MastodonClient, Notification, NotificationPolicy, NotificationRequest, Status},
 	timeline::TimelineType,
 };
 
@@ -57,6 +57,27 @@ impl MastodonClient {
 			request = request.bearer_auth(access_token);
 		}
 		Self::send_json_paged(request, "fetch timeline")
+	}
+
+	pub fn get_notification_requests(&self, access_token: &str) -> Result<Vec<NotificationRequest>> {
+		let mut url = self.base_url.join("api/v1/notifications/requests")?;
+		url.query_pairs_mut().append_pair("limit", "80");
+		self.get_json(access_token, url, "fetch message requests")
+	}
+
+	pub fn accept_notification_request(&self, access_token: &str, id: &str) -> Result<()> {
+		let url = self.base_url.join(&format!("api/v1/notifications/requests/{id}/accept"))?;
+		Self::send_empty(self.http.post(url).bearer_auth(access_token), "accept the message request")
+	}
+
+	pub fn dismiss_notification_request(&self, access_token: &str, id: &str) -> Result<()> {
+		let url = self.base_url.join(&format!("api/v1/notifications/requests/{id}/dismiss"))?;
+		Self::send_empty(self.http.post(url).bearer_auth(access_token), "dismiss the message request")
+	}
+
+	pub fn get_notification_policy(&self, access_token: &str) -> Result<NotificationPolicy> {
+		let url = self.base_url.join("api/v2/notifications/policy")?;
+		self.get_json(access_token, url, "fetch the notification policy")
 	}
 
 	pub fn get_notifications(

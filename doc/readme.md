@@ -378,6 +378,9 @@ Actions with no default binding are still reachable from the menu bar or the pos
 ### Quick Action Keys Mode
 Toggle with `Ctrl+Shift+Q`. While it is on, the single-letter bindings in the table above act on the selected post instead of being typed, and `Backspace` closes the current timeline.
 
+## Message Requests
+Mastodon 4.3 and later hold back private mentions from people you don't follow as message requests, rather than letting them reach your notifications. Fedra checks for them about once a minute and tells you when new ones are waiting, using your notification style. Open `File -> Message Requests...` to see who's asking, how many messages they sent and the latest one, then accept or dismiss each request. Accepting brings their messages into your notifications and direct messages.
+
 ## User Aliases
 To show someone under a name you choose, open their profile or find them in a followers or following list, open the actions menu, and choose Set Alias. The alias replaces their display name everywhere in your timelines, for every account you use in Fedra. To go back to their display name, set the alias again and leave it empty.
 

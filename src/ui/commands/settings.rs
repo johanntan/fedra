@@ -6,6 +6,7 @@ use crate::{
 	accounts::update_window_title,
 	config::ContentWarningDisplay,
 	network::NetworkCommand,
+	timeline::{TimelineTextOptions, TimelineType},
 	ui::{dialogs, menu::update_menu_labels, timeline_list::TimelineList},
 	ui_wake::UiCommandSender,
 };
@@ -251,6 +252,63 @@ pub(super) fn manage_filters(ctx: &mut UiCommandContext<'_>) {
 			}
 		},
 		Err(e) => dialogs::show_error(frame, &e),
+	}
+}
+
+pub(super) fn message_requests(ctx: &mut UiCommandContext<'_>) {
+	let state = &mut *ctx.state;
+	let frame = ctx.frame;
+	let live_region = ctx.live_region;
+	let (Some(client), Some(token)) = (&state.client, &state.access_token) else {
+		live_region.announce("Not logged in");
+		return;
+	};
+	let options = TimelineTextOptions::from_config_default(&state.config);
+	let mut selected = None;
+	let mut accepted = false;
+	loop {
+		let requests = match client.get_notification_requests(token) {
+			Ok(requests) => requests,
+			Err(err) if format!("{err:#}").contains("404") => {
+				live_region.announce("Your server doesn't support message requests");
+				return;
+			}
+			Err(err) => {
+				dialogs::show_error(frame, &err);
+				return;
+			}
+		};
+		let (index, result) = match dialogs::prompt_message_requests(frame, &requests, &options, selected) {
+			dialogs::MessageRequestAction::Accept(index) => {
+				accepted = true;
+				(index, client.accept_notification_request(token, &requests[index].id).map(|()| "Accepted"))
+			}
+			dialogs::MessageRequestAction::Dismiss(index) => {
+				(index, client.dismiss_notification_request(token, &requests[index].id).map(|()| "Dismissed"))
+			}
+			dialogs::MessageRequestAction::Close => break,
+		};
+		match result {
+			Ok(message) => live_region.announce(message),
+			Err(err) => dialogs::show_error(frame, &err),
+		}
+		selected = Some(index);
+	}
+	state.pending_message_requests = None;
+	if let Some(handle) = &state.network_handle {
+		handle.send(NetworkCommand::FetchNotificationPolicy);
+		// Accepted requests' notifications join the rest, so the timelines holding them refetch.
+		if accepted {
+			for timeline_type in [TimelineType::Notifications, TimelineType::Direct] {
+				if state.timeline_manager.index_of(&timeline_type).is_some() {
+					handle.send(NetworkCommand::FetchTimeline {
+						timeline_type,
+						limit: Some(u32::from(state.config.fetch_limit)),
+						max_id: None,
+					});
+				}
+			}
+		}
 	}
 }
 

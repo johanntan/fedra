@@ -199,6 +199,9 @@ pub(super) fn poll_streamable(ctx: &mut UiCommandContext<'_>) {
 	let state = &mut *ctx.state;
 	poll_streamable_timelines(state);
 	crate::read_position::sync(state);
+	if let Some(handle) = &state.network_handle {
+		handle.send(NetworkCommand::FetchNotificationPolicy);
+	}
 }
 
 pub(super) fn open(ctx: &mut UiCommandContext<'_>, timeline_type: TimelineType) {

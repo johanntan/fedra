@@ -278,6 +278,7 @@ pub enum NetworkCommand {
 		name: String,
 	},
 	FetchMarkers,
+	FetchNotificationPolicy,
 	SaveMarker {
 		timeline: &'static str,
 		last_read_id: String,
@@ -386,6 +387,7 @@ pub enum NetworkResponse {
 		result: Result<crate::mastodon::Tag>,
 	},
 	MarkersLoaded(Result<crate::mastodon::Markers>),
+	NotificationPolicyLoaded(Result<crate::mastodon::NotificationPolicy>),
 	TagUnfollowed {
 		name: String,
 		result: Result<crate::mastodon::Tag>,
@@ -1298,6 +1300,10 @@ fn network_loop(
 			Ok(NetworkCommand::RemoveListAccount { list_id, account_id }) => {
 				let result = client.remove_list_accounts(access_token, &list_id, slice::from_ref(&account_id));
 				send_response(responses, ui_waker, NetworkResponse::ListAccountRemoved { list_id, account_id, result });
+			}
+			Ok(NetworkCommand::FetchNotificationPolicy) => {
+				let result = client.get_notification_policy(access_token);
+				send_response(responses, ui_waker, NetworkResponse::NotificationPolicyLoaded(result));
 			}
 			Ok(NetworkCommand::FetchMarkers) => {
 				let result = client.get_markers(access_token);

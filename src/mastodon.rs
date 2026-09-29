@@ -18,7 +18,7 @@ pub use client::{AppCredentials, DEFAULT_SCOPES, Markers, MastodonClient};
 pub use filter::{Filter, FilterAction, FilterContext, FilterKeyword, FilterResult};
 pub use instance::InstanceInfo;
 pub use list::List;
-pub use notification::Notification;
+pub use notification::{Notification, NotificationPolicy, NotificationRequest};
 pub use poll::{Poll, PollLimits};
 pub use search::{SearchResults, SearchType};
 pub use status::{Conversation, MediaAttachment, Mention, PostSubmission, Status, StatusContext, StatusSource};

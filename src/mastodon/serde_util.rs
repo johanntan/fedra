@@ -15,6 +15,7 @@ where
 				if i < 0 { Ok(0) } else { Ok(i.cast_unsigned()) }
 			},
 		),
+		Value::String(s) => Ok(s.parse().unwrap_or(0)),
 		_ => Ok(0),
 	}
 }

@@ -3,10 +3,33 @@
 use serde::Deserialize;
 
 use crate::{
-	mastodon::{Account, Status},
+	mastodon::{Account, Status, serde_util::deserialize_u64_or_zero},
 	template::render_template,
 	timeline::TimelineTextOptions,
 };
+
+/// Notifications from someone the notification policy held back, such as private mentions from
+/// people the user doesn't follow, waiting to be accepted or dismissed.
+#[derive(Debug, Clone, Deserialize)]
+pub struct NotificationRequest {
+	pub id: String,
+	pub account: Account,
+	#[serde(deserialize_with = "deserialize_u64_or_zero")]
+	pub notifications_count: u64,
+	pub last_status: Option<Status>,
+}
+
+#[derive(Debug, Clone, Default, Deserialize)]
+pub struct NotificationPolicy {
+	#[serde(default)]
+	pub summary: NotificationPolicySummary,
+}
+
+#[derive(Debug, Clone, Default, Deserialize)]
+pub struct NotificationPolicySummary {
+	#[serde(default, deserialize_with = "deserialize_u64_or_zero")]
+	pub pending_requests_count: u64,
+}
 
 #[derive(Debug, Clone, Deserialize)]
 #[allow(dead_code)]

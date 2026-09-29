@@ -32,6 +32,26 @@ pub fn show_notification(app_shell: Option<&AppShell>, notification: &Notificati
 	show(app_shell, notification.account.display_name_or_username(), &notification.simple_display());
 }
 
+/// Tells the user that `count` message requests are waiting, in the chosen notification style.
+pub fn notify_message_requests(state: &AppState, count: u64) {
+	match state.config.notification_preference {
+		NotificationPreference::Classic => {
+			let body = if count == 1 {
+				"1 message request is waiting".to_string()
+			} else {
+				format!("{count} message requests are waiting")
+			};
+			show(state.app_shell.as_deref(), "Message requests", &body);
+		}
+		NotificationPreference::SoundOnly => {
+			if let Some((output, sound_path)) = &state.notification_sound {
+				crate::audio::play_once(output, sound_path);
+			}
+		}
+		NotificationPreference::Disabled => {}
+	}
+}
+
 /// Alerts once for a batch of new posts in timelines the user asked to be notified about, each
 /// paired with its timeline's name.
 pub fn notify_new_posts(state: &AppState, posts: &[(String, Status)]) {
