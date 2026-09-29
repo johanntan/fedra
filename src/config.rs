@@ -259,6 +259,8 @@ pub enum ActionId {
 	CloseTimeline,
 	TogglePermanentTimeline,
 	ToggleTimelineNotifications,
+	ClearTimeline,
+	ClearAllTimelines,
 	Refresh,
 	SwitchPrevTimeline,
 	SwitchNextTimeline,
@@ -328,6 +330,8 @@ impl ActionId {
 			Self::CloseTimeline,
 			Self::TogglePermanentTimeline,
 			Self::ToggleTimelineNotifications,
+			Self::ClearTimeline,
+			Self::ClearAllTimelines,
 			Self::Refresh,
 			Self::SwitchPrevTimeline,
 			Self::SwitchNextTimeline,
@@ -397,6 +401,8 @@ impl ActionId {
 			Self::CloseTimeline => "Close Timeline",
 			Self::TogglePermanentTimeline => "Make Timeline Permanent or Closable",
 			Self::ToggleTimelineNotifications => "Turn New Post Notifications On or Off",
+			Self::ClearTimeline => "Clear Timeline",
+			Self::ClearAllTimelines => "Clear All Timelines",
 			Self::Refresh => "Refresh",
 			Self::SwitchPrevTimeline => "Previous Timeline",
 			Self::SwitchNextTimeline => "Next Timeline",
@@ -468,6 +474,8 @@ impl ActionId {
 				Self::CloseTimeline => Some(KeyChord::new(false, false, false, "Backspace")),
 				Self::TogglePermanentTimeline => Some(KeyChord::new(true, false, false, "P")),
 				Self::ToggleTimelineNotifications => Some(KeyChord::new(true, false, false, "N")),
+				Self::ClearTimeline => Some(KeyChord::new(true, false, false, "Delete")),
+				Self::ClearAllTimelines => Some(KeyChord::new(true, false, true, "Delete")),
 				Self::Refresh => Some(KeyChord::new(false, false, false, "F5")),
 				Self::SwitchPrevTimeline => Some(KeyChord::new(false, false, false, "Left")),
 				Self::SwitchNextTimeline => Some(KeyChord::new(false, false, false, "Right")),
@@ -535,6 +543,8 @@ impl ActionId {
 				Self::CloseTimeline => Some(KeyChord::new(true, false, false, "W")),
 				Self::TogglePermanentTimeline => Some(KeyChord::new(true, false, true, "P")),
 				Self::ToggleTimelineNotifications => Some(KeyChord::new(true, false, true, "N")),
+				Self::ClearTimeline => Some(KeyChord::new(true, false, false, "Delete")),
+				Self::ClearAllTimelines => Some(KeyChord::new(true, false, true, "Delete")),
 				Self::Refresh => Some(KeyChord::new(false, false, false, "F5")),
 				Self::SwitchPrevTimeline => Some(KeyChord::new(false, false, false, "Left")),
 				Self::SwitchNextTimeline => Some(KeyChord::new(false, false, false, "Right")),
@@ -707,8 +717,15 @@ impl GlobalAction {
 			Self::PreviousTimeline => Some(global("Left")),
 			Self::NextTimeline => Some(global("Right")),
 			// Exit would be Ctrl+Alt+Win+F4, too close to Windows' Ctrl+Win+F4. Find and View thread
-			// would land on Follow's and Open links' keys, and Delete on Ctrl+Alt+Delete.
-			Self::Exit | Self::Action(ActionId::Find | ActionId::ViewThread | ActionId::DeletePost) => None,
+			// would land on Follow's and Open links' keys, and the Delete ones on Ctrl+Alt+Delete.
+			Self::Exit
+			| Self::Action(
+				ActionId::Find
+				| ActionId::ViewThread
+				| ActionId::DeletePost
+				| ActionId::ClearTimeline
+				| ActionId::ClearAllTimelines,
+			) => None,
 			// Ctrl+Alt+Shift+Win is the Office key, and Windows opens an Office app for these letters.
 			Self::Action(action) => {
 				let chord = action.default_chord(false)?;

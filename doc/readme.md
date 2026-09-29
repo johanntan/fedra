@@ -82,6 +82,9 @@ Make Timeline Permanent or Closable (`Ctrl+Shift+P`, or `Ctrl+P` in Quick Action
 ### New Post Notifications
 Turn New Post Notifications On or Off (`Ctrl+Shift+N`, or `Ctrl+N` in Quick Action Keys mode) notifies you when new posts arrive in the current timeline, the same way as for notifications: with a system notification, only a sound, or not at all, as set in Options. It works in timelines that update live: Home, Local, Federated, Direct Messages, and lists. A burst of posts gives you one notification rather than one for each post, and your own posts never notify you. The setting is saved per account.
 
+### Clearing
+Clear Timeline (`Ctrl+Delete`) empties the current timeline, and Clear All Timelines (`Ctrl+Shift+Delete`) empties every open one. This only affects what Fedra shows: nothing is deleted from your server, new posts keep arriving, and refreshing brings back the latest page.
+
 ### Refreshing
 Streaming timelines update themselves. `F5` refreshes the current timeline at any time, and `.` (Load More) fetches older entries. If a streaming timeline loses its connection, Fedra re-fetches it about once a minute until streaming comes back.
 
@@ -355,6 +358,8 @@ If another program already uses one of these, Fedra says so when it starts, and 
 | Close Timeline | `Ctrl+W` | `Backspace` |
 | Make Timeline Permanent or Closable | `Ctrl+Shift+P` | `Ctrl+P` |
 | Turn New Post Notifications On or Off | `Ctrl+Shift+N` | `Ctrl+N` |
+| Clear Timeline | `Ctrl+Delete` | `Ctrl+Delete` |
+| Clear All Timelines | `Ctrl+Shift+Delete` | `Ctrl+Shift+Delete` |
 | Refresh | `F5` | `F5` |
 | Previous Timeline | `Left` | `Left` |
 | Next Timeline | `Right` | `Right` |

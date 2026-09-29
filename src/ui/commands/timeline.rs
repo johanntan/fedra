@@ -303,6 +303,22 @@ pub(super) fn toggle_notifications(ctx: &mut UiCommandContext<'_>) {
 	ctx.live_region.announce(if notifying { "Notifications on" } else { "Notifications off" });
 }
 
+/// Empties the active timeline, or every open one, in Fedra only. Posts that arrive afterwards
+/// still show up, and refreshing brings back the latest page.
+pub(super) fn clear(ctx: &mut UiCommandContext<'_>, all: bool) {
+	let state = &mut *ctx.state;
+	let active_index = state.timeline_manager.active_index();
+	for (index, timeline) in state.timeline_manager.iter_mut().enumerate() {
+		if all || index == active_index {
+			timeline.entries.clear();
+			timeline.selected_index = None;
+			timeline.selected_id = None;
+		}
+	}
+	refresh_active_timeline(ctx);
+	ctx.live_region.announce(if all { "All timelines cleared" } else { "Timeline cleared" });
+}
+
 pub(super) fn load_more_background(ctx: &mut UiCommandContext<'_>) {
 	let state = &mut *ctx.state;
 	if let Some(active) = state.timeline_manager.active_mut() {
