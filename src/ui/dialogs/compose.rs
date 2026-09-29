@@ -1248,7 +1248,11 @@ pub fn prompt_for_reply(
 		}
 		accts.iter().map(|a| format!("@{a}")).collect::<Vec<_>>().join(" ") + " "
 	} else {
-		format!("@{} ", replying_to.account.full_acct())
+		let author_acct = replying_to.account.full_acct();
+		let is_self = self_acct.map(|acct| acct.trim().trim_start_matches('@')).is_some_and(|acct| {
+			!acct.is_empty() && acct.eq_ignore_ascii_case(author_acct.trim().trim_start_matches('@'))
+		});
+		if is_self { String::new() } else { format!("@{author_acct} ") }
 	};
 	let default_visibility = match replying_to.visibility.as_str() {
 		"unlisted" => PostVisibility::Unlisted,
