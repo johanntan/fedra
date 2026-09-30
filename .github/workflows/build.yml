@@ -16,6 +16,8 @@ env:
 jobs:
   build:
     name: Build (${{ matrix.arch }})
+    # A release commit gets its tag pushed too, and the release workflow builds that.
+    if: ${{ !startsWith(github.event.head_commit.message, 'Release ') }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -75,6 +77,8 @@ jobs:
         retention-days: 30
   build-macos:
     name: Build (macOS arm64)
+    # A release commit gets its tag pushed too, and the release workflow builds that.
+    if: ${{ !startsWith(github.event.head_commit.message, 'Release ') }}
     runs-on: macos-latest
     # Code signing and notarization run only when their secrets are set. Without them the DMG
     # still builds, but Gatekeeper makes people allow Fedra in System Settings on first launch.
