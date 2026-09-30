@@ -62,7 +62,13 @@ fn event_key(event: *mut Object) -> Option<(usize, i32)> {
 /// their NSMenuItems when pressed. The wx menu handler still performs the action.
 pub(super) fn install_menu_shortcuts(frame: Frame, shortcuts: &'static [(i32, i32)]) {
 	let monitor = ConcreteBlock::new(move |event: *mut Object| -> *mut Object {
-		if !frame.is_valid() || !frame.has_focus() {
+		if !frame.is_valid() {
+			return event;
+		}
+		let frame_view = frame.get_handle().cast::<Object>();
+		let (frame_window, event_window): (*mut Object, *mut Object) =
+			unsafe { (msg_send![frame_view, window], msg_send![event, window]) };
+		if frame_window.is_null() || frame_window != event_window {
 			return event;
 		}
 		let Some((modifiers, key_code)) = event_key(event) else { return event };
