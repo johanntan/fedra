@@ -1,6 +1,6 @@
-use std::{env, sync::Arc};
+use std::sync::Arc;
 
-use ship_shape::{InstallKind, UpdateChannel as ShipChannel, UpdaterConfig, ui::CheckTrigger};
+use ship_shape::{UpdateChannel as ShipChannel, UpdaterConfig, ui::CheckTrigger};
 use wxdragon::prelude::*;
 
 const FEDRA_GITHUB_REPO: &str = "trypsynth/fedra";
@@ -15,19 +15,9 @@ pub fn run_update_check(frame: Frame, silent: bool) {
 	let updater_config = Arc::new(
 		UpdaterConfig::new(FEDRA_GITHUB_REPO, "fedra", "Fedra", FEDRA_MINISIGN_KEY, env!("CARGO_PKG_VERSION"))
 			.with_commit(env!("FEDRA_COMMIT_HASH"))
-			.with_install_kind(if is_installer_distribution() { InstallKind::Installer } else { InstallKind::Portable })
+			.with_install_kind(crate::config::home().kind().into())
 			.with_asset_suffix(if cfg!(target_arch = "aarch64") { "-arm64" } else { "-x64" }),
 	);
 	let trigger = if silent { CheckTrigger::Automatic } else { CheckTrigger::Manual };
 	ship_shape::ui::run_update_check(updater_config, &frame, channel, trigger);
-}
-
-fn is_installer_distribution() -> bool {
-	let Ok(exe_path) = env::current_exe() else {
-		return false;
-	};
-	let Some(exe_dir) = exe_path.parent() else {
-		return false;
-	};
-	exe_dir.join("unins000.exe").exists()
 }

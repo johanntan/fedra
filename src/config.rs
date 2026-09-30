@@ -1,11 +1,13 @@
 use std::{
 	collections::HashMap,
-	env, fs, io,
+	fs, io,
 	path::{Path, PathBuf},
+	sync::LazyLock,
 	time::{SystemTime, UNIX_EPOCH},
 };
 
 use anyhow::Result;
+use homeport::Homeport;
 pub use key_chord::KeyChord;
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
@@ -1219,51 +1221,19 @@ impl Default for ConfigStore {
 	}
 }
 
+/// How Fedra was installed, which decides where its config and resources are.
+pub fn home() -> &'static Homeport {
+	static HOME: LazyLock<Homeport> = LazyLock::new(|| Homeport::new(APP_NAME));
+	&HOME
+}
+
+/// The config folder, created if it doesn't exist yet.
 pub fn config_dir() -> PathBuf {
-	let exe_dir = env::current_exe()
-		.ok()
-		.and_then(|path| path.parent().map(std::path::Path::to_path_buf))
-		.unwrap_or_else(|| env::current_dir().unwrap_or_else(|_| PathBuf::from(".")));
-	// Writing inside an app bundle would break its signature.
-	#[cfg(target_os = "macos")]
-	if exe_dir.components().any(|c| c.as_os_str().to_string_lossy().ends_with(".app"))
-		&& let Some(home) = env::var_os("HOME")
-	{
-		let dir = PathBuf::from(home).join("Library/Application Support").join(APP_NAME);
-		let _ = fs::create_dir_all(&dir);
-		return dir;
-	}
-	if is_installed(&exe_dir)
-		&& let Ok(appdata) = env::var("APPDATA")
-	{
-		return PathBuf::from(appdata).join(APP_NAME);
-	}
-	exe_dir
+	home().create_config_dir().unwrap_or_else(|_| home().config_dir())
 }
 
 fn config_path() -> PathBuf {
 	config_dir().join(CONFIG_FILENAME)
-}
-
-fn is_installed(exe_dir: &PathBuf) -> bool {
-	let Ok(entries) = fs::read_dir(exe_dir) else {
-		return false;
-	};
-	for entry in entries.flatten() {
-		let path = entry.path();
-		if !path.is_file() {
-			continue;
-		}
-		let Some(name) = path.file_name().and_then(|name| name.to_str()) else {
-			continue;
-		};
-		let name = name.to_ascii_lowercase();
-		if name.starts_with("unins") && Path::new(&name).extension().is_some_and(|ext| ext.eq_ignore_ascii_case("exe"))
-		{
-			return true;
-		}
-	}
-	false
 }
 
 fn new_account_id() -> String {

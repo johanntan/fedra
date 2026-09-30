@@ -215,12 +215,7 @@ impl AppState {
 /// runs from a macOS app bundle.
 #[must_use]
 pub fn resource_dir() -> std::path::PathBuf {
-	let exe_dir = std::env::current_exe().ok().and_then(|path| path.parent().map(std::path::Path::to_path_buf));
-	match exe_dir {
-		Some(dir) if cfg!(target_os = "macos") && dir.ends_with("Contents/MacOS") => dir.with_file_name("Resources"),
-		Some(dir) => dir,
-		None => std::path::PathBuf::new(),
-	}
+	config::home().resource_dir()
 }
 
 #[must_use]
