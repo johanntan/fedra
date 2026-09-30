@@ -16,6 +16,8 @@ use url::Url;
 use wxdragon::prelude::*;
 
 use crate::audio;
+#[cfg(target_os = "macos")]
+use crate::ui::keys;
 
 // Background threads (downloading, decoding) never touch wxWidgets handles
 // or Rc-based state directly, since those aren't `Send`. Instead they only
@@ -549,16 +551,16 @@ pub fn show_media_player(_parent: &dyn WxWidget, url: String, kind: &str, _acces
 	crate::ui::mac_shortcuts::install_menu_shortcuts(
 		frame,
 		&[
-			(32, ID_PLAY_PAUSE),
-			(314, ID_SEEK_BACK),
-			(316, ID_SEEK_FWD),
-			(315, ID_VOL_UP),
-			(317, ID_VOL_DOWN),
-			(69, ID_ELAPSED),
-			(82, ID_REMAINING),
-			(84, ID_TOTAL),
-			(68, ID_DOWNLOAD),
-			(27, ID_CLOSE),
+			(keys::SPACE, ID_PLAY_PAUSE),
+			(keys::LEFT, ID_SEEK_BACK),
+			(keys::RIGHT, ID_SEEK_FWD),
+			(keys::UP, ID_VOL_UP),
+			(keys::DOWN, ID_VOL_DOWN),
+			('E' as i32, ID_ELAPSED),
+			('R' as i32, ID_REMAINING),
+			('T' as i32, ID_TOTAL),
+			('D' as i32, ID_DOWNLOAD),
+			(keys::ESCAPE, ID_CLOSE),
 		],
 	);
 	let temp_path = unique_temp_path();
@@ -797,7 +799,7 @@ fn show_image_viewer(url: String) {
 	let menu_bar = MenuBar::builder().append(menu, "&Image").build();
 	frame.set_menu_bar(menu_bar);
 	#[cfg(target_os = "macos")]
-	crate::ui::mac_shortcuts::install_menu_shortcuts(frame, &[(68, ID_DOWNLOAD), (27, ID_CLOSE)]);
+	crate::ui::mac_shortcuts::install_menu_shortcuts(frame, &[('D' as i32, ID_DOWNLOAD), (keys::ESCAPE, ID_CLOSE)]);
 	frame.on_menu_selected({
 		let frm = frame;
 		let url = url.clone();

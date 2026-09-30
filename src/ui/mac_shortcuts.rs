@@ -12,8 +12,12 @@ use wxdragon::{ffi, prelude::*};
 
 use crate::{
 	UiCommand,
-	config::{ActionId, ShortcutsConfig},
-	ui::{commands::command_for, dialogs, window::WindowParts},
+	config::ShortcutsConfig,
+	ui::{
+		keys,
+		shortcuts::{dispatch_action, timeline_index_for_key},
+		window::WindowParts,
+	},
 	ui_wake::UiCommandSender,
 };
 
@@ -26,17 +30,17 @@ const KEY_DOWN: usize = 1 << 10;
 
 fn wx_key_code(character: u16) -> Option<i32> {
 	match character {
-		0x7f => Some(8),                                              // Backspace
-		0xf700 => Some(315),                                          // Up
-		0xf701 => Some(317),                                          // Down
-		0xf702 => Some(314),                                          // Left
-		0xf703 => Some(316),                                          // Right
-		0xf704..=0xf71b => Some(i32::from(character - 0xf704) + 340), // F1 through F24
-		0xf728 => Some(127),                                          // Forward Delete
-		0xf729 => Some(313),                                          // Home
-		0xf72b => Some(312),                                          // End
-		0xf72c => Some(366),                                          // Page Up
-		0xf72d => Some(367),                                          // Page Down
+		0x7f => Some(keys::BACKSPACE),
+		0xf700 => Some(keys::UP),
+		0xf701 => Some(keys::DOWN),
+		0xf702 => Some(keys::LEFT),
+		0xf703 => Some(keys::RIGHT),
+		0xf704..=0xf71b => Some(i32::from(character - 0xf704) + keys::F1), // F1 through F24
+		0xf728 => Some(keys::DELETE),
+		0xf729 => Some(keys::HOME),
+		0xf72b => Some(keys::END),
+		0xf72c => Some(keys::PAGE_UP),
+		0xf72d => Some(keys::PAGE_DOWN),
 		_ => {
 			let character = char::from_u32(u32::from(character))?;
 			if character.is_ascii() { Some(character.to_ascii_uppercase() as i32) } else { None }
@@ -47,7 +51,19 @@ fn wx_key_code(character: u16) -> Option<i32> {
 fn event_key(event: *mut Object) -> Option<(usize, i32)> {
 	let (modifiers, character) = unsafe {
 		let modifiers: usize = msg_send![event, modifierFlags];
+		// Keep AppKit's special key codes: charactersByApplyingModifiers translates
+		// arrows, function keys and Delete into different control characters.
 		let characters: *mut Object = msg_send![event, charactersIgnoringModifiers];
+		let length: usize = msg_send![characters, length];
+		if length == 1 {
+			let character: u16 = msg_send![characters, characterAtIndex: 0_usize];
+			if character == 0x7f || (0xf700..=0xf8ff).contains(&character) {
+				return Some((modifiers, wx_key_code(character)?));
+			}
+		}
+		// Unlike charactersIgnoringModifiers, this also removes Shift. Match the
+		// base key (e.g. '/' rather than '?') and check its modifiers separately.
+		let characters: *mut Object = msg_send![event, charactersByApplyingModifiers: 0_usize];
 		let length: usize = msg_send![characters, length];
 		if length == 0 {
 			return None;
@@ -59,7 +75,7 @@ fn event_key(event: *mut Object) -> Option<(usize, i32)> {
 }
 
 /// Keep a secondary window's native menu shortcuts visible without selecting
-/// their NSMenuItems when pressed. The wx menu handler still performs the action.
+/// their `NSMenuItems` when pressed. The wx menu handler still performs the action.
 pub(super) fn install_menu_shortcuts(frame: Frame, shortcuts: &'static [(i32, i32)]) {
 	let monitor = ConcreteBlock::new(move |event: *mut Object| -> *mut Object {
 		if !frame.is_valid() {
@@ -109,43 +125,22 @@ pub(super) fn install(
 		// A local NSEvent monitor runs before NSMenu.performKeyEquivalent. Returning null
 		// stops only a key that Fedra handled, leaving the visible menu shortcuts intact.
 		let Some((modifiers, key_code)) = event_key(event) else { return event };
-		let quick_mode = quick_action_keys_enabled.get();
-		if (49..=57).contains(&key_code)
-			&& (modifiers & COMMAND != 0 || (quick_mode && modifiers & (COMMAND | OPTION | SHIFT | CONTROL) == 0))
-		{
-			let _ = ui_tx.send(UiCommand::SwitchTimelineByIndex((key_code - 49) as usize));
-			return ptr::null_mut();
-		}
-		let action = shortcuts_cell.borrow().find_action(
-			quick_mode,
-			key_code,
-			modifiers & COMMAND != 0,
-			modifiers & OPTION != 0,
-			modifiers & SHIFT != 0,
-		);
-		let Some(action) = action else { return event };
 		// The in-window keymap has no physical-Control modifier. Do not consume a
 		// Control key chord as though it were an unmodified quick key.
 		if modifiers & CONTROL != 0 {
 			return event;
 		}
-		match action {
-			ActionId::Find => {
-				if let Some(query) = dialogs::show_find_dialog(&frame) {
-					let _ = ui_tx.send(UiCommand::Find(query));
-				}
-			}
-			ActionId::ToggleQuickActionKeys => {
-				let enabled = !quick_mode;
-				quick_action_keys_enabled.set(enabled);
-				let _ = ui_tx.send(UiCommand::SetQuickActionKeysEnabled(enabled));
-			}
-			_ => {
-				if let Some(command) = command_for(action) {
-					let _ = ui_tx.send(command);
-				}
-			}
+		let quick_mode = quick_action_keys_enabled.get();
+		let ctrl = modifiers & COMMAND != 0;
+		let alt = modifiers & OPTION != 0;
+		let shift = modifiers & SHIFT != 0;
+		if let Some(index) = timeline_index_for_key(key_code, quick_mode, ctrl, alt, shift) {
+			let _ = ui_tx.send(UiCommand::SwitchTimelineByIndex(index));
+			return ptr::null_mut();
 		}
+		let action = shortcuts_cell.borrow().find_action(quick_mode, key_code, ctrl, alt, shift);
+		let Some(action) = action else { return event };
+		dispatch_action(action, &frame, &ui_tx, &quick_action_keys_enabled);
 		ptr::null_mut()
 	})
 	.copy();

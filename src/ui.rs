@@ -6,6 +6,7 @@ pub mod keys;
 #[cfg(target_os = "macos")]
 mod mac_shortcuts;
 pub mod menu;
+mod shortcuts;
 pub mod timeline_list;
 pub mod timeline_view;
 pub mod update_check;
