@@ -1,4 +1,4 @@
-//! Run timeline shortcuts before Cocoa turns their menu key equivalents into menu selections.
+//! Run shortcuts before Cocoa turns their menu key equivalents into menu selections.
 
 use std::{
 	cell::{Cell, RefCell},
@@ -8,7 +8,7 @@ use std::{
 
 use block::ConcreteBlock;
 use objc::{class, msg_send, runtime::Object, sel, sel_impl};
-use wxdragon::prelude::*;
+use wxdragon::{ffi, prelude::*};
 
 use crate::{
 	UiCommand,
@@ -44,6 +44,48 @@ fn wx_key_code(character: u16) -> Option<i32> {
 	}
 }
 
+fn event_key(event: *mut Object) -> Option<(usize, i32)> {
+	let (modifiers, character) = unsafe {
+		let modifiers: usize = msg_send![event, modifierFlags];
+		let characters: *mut Object = msg_send![event, charactersIgnoringModifiers];
+		let length: usize = msg_send![characters, length];
+		if length == 0 {
+			return None;
+		}
+		let character: u16 = msg_send![characters, characterAtIndex: 0_usize];
+		(modifiers, character)
+	};
+	Some((modifiers, wx_key_code(character)?))
+}
+
+/// Keep a secondary window's native menu shortcuts visible without selecting
+/// their NSMenuItems when pressed. The wx menu handler still performs the action.
+pub(super) fn install_menu_shortcuts(frame: Frame, shortcuts: &'static [(i32, i32)]) {
+	let monitor = ConcreteBlock::new(move |event: *mut Object| -> *mut Object {
+		if !frame.is_valid() || !frame.has_focus() {
+			return event;
+		}
+		let Some((modifiers, key_code)) = event_key(event) else { return event };
+		if modifiers & (SHIFT | CONTROL | OPTION | COMMAND) != 0 {
+			return event;
+		}
+		let Some((_, id)) = shortcuts.iter().find(|(key, _)| *key == key_code) else { return event };
+		unsafe { ffi::wxd_Window_PostMenuCommand(frame.handle_ptr(), *id) };
+		ptr::null_mut()
+	})
+	.copy();
+	let token: *mut Object = unsafe {
+		let token: *mut Object =
+			msg_send![class!(NSEvent), addLocalMonitorForEventsMatchingMask: KEY_DOWN handler: &*monitor];
+		let _: *mut Object = msg_send![token, retain];
+		token
+	};
+	frame.on_destroy(move |_| unsafe {
+		let _: () = msg_send![class!(NSEvent), removeMonitor: token];
+		let _: () = msg_send![token, release];
+	});
+}
+
 pub(super) fn install(
 	parts: &WindowParts,
 	ui_tx: UiCommandSender,
@@ -60,17 +102,7 @@ pub(super) fn install(
 		}
 		// A local NSEvent monitor runs before NSMenu.performKeyEquivalent. Returning null
 		// stops only a key that Fedra handled, leaving the visible menu shortcuts intact.
-		let (modifiers, character) = unsafe {
-			let modifiers: usize = msg_send![event, modifierFlags];
-			let characters: *mut Object = msg_send![event, charactersIgnoringModifiers];
-			let length: usize = msg_send![characters, length];
-			if length == 0 {
-				return event;
-			}
-			let character: u16 = msg_send![characters, characterAtIndex: 0_usize];
-			(modifiers, character)
-		};
-		let Some(key_code) = wx_key_code(character) else { return event };
+		let Some((modifiers, key_code)) = event_key(event) else { return event };
 		let quick_mode = quick_action_keys_enabled.get();
 		if (49..=57).contains(&key_code)
 			&& (modifiers & COMMAND != 0 || (quick_mode && modifiers & (COMMAND | OPTION | SHIFT | CONTROL) == 0))

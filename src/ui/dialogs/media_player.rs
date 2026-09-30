@@ -545,6 +545,22 @@ pub fn show_media_player(_parent: &dyn WxWidget, url: String, kind: &str, _acces
 		.build();
 	let menu_bar = MenuBar::builder().append(menu, "&Playback").build();
 	frame.set_menu_bar(menu_bar);
+	#[cfg(target_os = "macos")]
+	crate::ui::mac_shortcuts::install_menu_shortcuts(
+		frame,
+		&[
+			(32, ID_PLAY_PAUSE),
+			(314, ID_SEEK_BACK),
+			(316, ID_SEEK_FWD),
+			(315, ID_VOL_UP),
+			(317, ID_VOL_DOWN),
+			(69, ID_ELAPSED),
+			(82, ID_REMAINING),
+			(84, ID_TOTAL),
+			(68, ID_DOWNLOAD),
+			(27, ID_CLOSE),
+		],
+	);
 	let temp_path = unique_temp_path();
 	let progress = Arc::new(DownloadProgress {
 		downloaded: AtomicU64::new(0),
@@ -780,6 +796,8 @@ fn show_image_viewer(url: String) {
 		.build();
 	let menu_bar = MenuBar::builder().append(menu, "&Image").build();
 	frame.set_menu_bar(menu_bar);
+	#[cfg(target_os = "macos")]
+	crate::ui::mac_shortcuts::install_menu_shortcuts(frame, &[(68, ID_DOWNLOAD), (27, ID_CLOSE)]);
 	frame.on_menu_selected({
 		let frm = frame;
 		let url = url.clone();
