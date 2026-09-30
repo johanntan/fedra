@@ -1,54 +1,55 @@
 # Fedra User Manual
 
-[Fedra](https://github.com/trypsynth/fedra) is a native, keyboard-first Mastodon client for Windows.
+[Fedra](https://github.com/trypsynth/fedra) is a native, keyboard-first Mastodon client for Windows and macOS, made for screen reader users.
 
 ## System Requirements
-Windows 10 or 11
+- Windows 10 or 11, on x64 or Arm.
+- macOS 13 Ventura or later, on Apple silicon.
 
 ## Core Features
-- Native Windows UI with screen-reader-friendly controls and live announcements, built on a custom [AccessKit](https://accesskit.dev)-backed list control.
-- Multi-account support, including account switching while preserving per-account timelines.
-- Timelines: Home, Notifications, Mentions, Sent, Local, another instance's Local, Federated, Direct Messages, Bookmarks, Favorites, Lists, User, Hashtag, Thread, and Search.
-- Real-time streaming for Home, Notifications, Local, Federated, Direct, and List timelines. Your own posts also appear in the Sent timeline as soon as you publish them.
-- Rich post creation and editing with:
-  - Visibility (Public, Unlisted, Followers only, Direct)
-  - Content warnings
-  - Content type (Default, plain text, markdown, HTML)
-  - Optional post language
-  - Media attachments with descriptions, optionally marked sensitive
-  - Polls, with preset durations, multiple choice, and optionally hidden vote counts
-  - Quote posts
-  - Scheduled posts
-  - Thread mode, for writing a chain of self-replies without reopening the dialog
-- Relationship and discovery tools:
-  - Open profile/timeline from posts, mentions, boost/favorite lists, and search
-  - Follow/unfollow, block, mute, show/hide a user's boosts, and add users to lists
-  - Accept or reject follow requests
-  - Browse a user's followers and following
-  - Give anyone an alias that Fedra shows in place of their display name
-  - Follow/unfollow and mute hashtags
-  - View users who boosted/favorited posts
-  - Search for accounts, hashtags, and posts
-- Built-in media player with download support.
-- Fully customizable keyboard shortcuts, with independent bindings for normal and Quick Action Keys modes.
-- Client-side timeline filters, plus management of server-side Mastodon filters.
-- Mastodon list management (create, edit, delete, and change membership) and list timelines.
-- Customizable timeline entry and window title templates.
-- Tray integration, and global shortcuts that let you read and act on your timelines from anywhere, even with the main window hidden.
-- Optional update checks at startup plus manual update checks, on either the stable or development channel.
+- A native user interface with controls that work well with screen readers. Fedra announces changes as they occur. On Windows, the timeline is a custom list control that uses [AccessKit](https://accesskit.dev).
+- More than one account. Each account keeps its own open timelines when you switch between accounts.
+- Timelines: Home, Notifications, Mentions, Sent, Local, the Local timeline of another instance, Federated, Direct Messages, Bookmarks, Favorites, Lists, User, Hashtag, Thread, and Search.
+- Live updates for the Home, Notifications, Local, Federated, Direct Messages, and list timelines. Your own posts also show in the Sent timeline when you publish them.
+- Post creation and editing, with:
+  - Visibility: Public, Unlisted, Followers only, or Direct.
+  - Content warnings.
+  - Content type: Default, plain text, Markdown, or HTML.
+  - Post language.
+  - Media attachments with descriptions. You can mark media as sensitive.
+  - Polls, with preset durations, multiple choices, and hidden vote counts.
+  - Quote posts.
+  - Scheduled posts.
+  - Thread mode, to write a series of replies to your own posts in one dialog.
+- Tools for people and topics:
+  - Open a profile or timeline from a post, a mention, a list of boosts or favorites, or a search result.
+  - Follow, unfollow, block, and mute users. Show or hide the boosts of a user. Add users to lists.
+  - Accept or reject follow requests.
+  - See the followers and the accounts that a user follows.
+  - Give a user an alias. Fedra shows the alias in place of their display name.
+  - Follow, unfollow, and mute hashtags.
+  - See the users who boosted or favorited a post.
+  - Search for accounts, hashtags, and posts.
+- A media player that can also download media.
+- Keyboard shortcuts that you can change. Normal mode and Quick Action Keys mode each have their own shortcuts.
+- Timeline filters in Fedra, and management of the filters on your server.
+- Management of Mastodon lists, and list timelines.
+- Templates for timeline entries and for the window title.
+- A tray icon. Global shortcuts let you read and use your timelines from any program, also when the main window is hidden.
+- Update checks at startup or when you ask, for stable releases or test builds.
 
 ## Main Window Layout
 The main window has two lists:
 
-- The **Timelines** list, holding every open timeline in order.
-- The **Posts** list, holding the entries of the currently selected timeline.
+- The Timelines list shows all open timelines, in order.
+- The Posts list shows the entries of the selected timeline.
 
-`Tab` and `Shift+Tab` move between them. Timeline switching, reordering, and closing work from either list; post actions work from the Posts list.
+Use `Tab` and `Shift+Tab` to move between the two lists. You can switch, move, and close timelines from either list. Use the Posts list for actions on posts.
 
 ## Timelines
 
 ### Opening Timelines
-Timelines are opened from the **Timelines** menu, from a post (user timelines, threads, hashtags), or with their shortcut. Every open timeline appears in the Timelines list and stays open until you close it with `Ctrl+W` (or `Backspace` in Quick Action Keys mode).
+Open a timeline from the Timelines menu, from a post, or with its shortcut. You can open user timelines, threads, and hashtag timelines from a post. All open timelines show in the Timelines list. A timeline stays open until you close it with `Ctrl+W`, or `Backspace` in Quick Action Keys mode.
 
 | Timeline | How to open |
 |---|---|
@@ -57,64 +58,71 @@ Timelines are opened from the **Timelines** menu, from a post (user timelines, t
 | Mentions | `Ctrl+Shift+M` |
 | Sent | `Timelines -> Sent` |
 | Local | `Ctrl+L` |
-| Local for another instance | `Ctrl+Shift+I`, then type a domain |
+| Local timeline of another instance | `Ctrl+Shift+I`, then type the domain |
 | Federated | `Timelines -> Federated Timeline` |
 | Direct Messages | `Ctrl+D` |
 | Bookmarks | `Timelines -> Bookmarks` |
 | Favorites | `Timelines -> Favorites` |
 | List | `Timelines -> Open List...` |
 | User | `Ctrl+T` on a post, or `Ctrl+U` to type a handle |
-| Hashtag | `Ctrl+H` on a post, then **View Timeline** |
+| Hashtag | `Ctrl+H` on a post, then `View Timeline` |
 | Thread | `Alt+Enter` on a post |
 | Search | `Ctrl+/` |
 
-Home and Notifications are opened automatically at startup, but they are not special: you can close them like any other timeline and reopen them from the Timelines menu.
+Fedra opens Home and Notifications at startup. You can close them as you close other timelines, and open them again from the Timelines menu.
 
 ### The Sent Timeline
-`Timelines -> Sent` opens your own account's timeline in a buffer, so you can see everything you have posted, including replies and boosts, with your pinned posts at the top. Posts you publish or delete are reflected there live.
+`Timelines -> Sent` opens the timeline of your own account. It shows all your posts, replies, and boosts, with your pinned posts at the top. When you publish or delete a post, the Sent timeline changes immediately.
 
-### Reordering and Switching
-Reorder timelines with `Shift+Left Arrow` and `Shift+Right Arrow` from either list. Switch between them with `Left Arrow`/`Right Arrow` or `Ctrl+1` through `Ctrl+9`.
+### Moving and Switching
+To move a timeline, press `Shift+Left Arrow` or `Shift+Right Arrow` in either list. To switch timelines, press `Left Arrow` or `Right Arrow`, or press `Ctrl+1` through `Ctrl+9`.
 
 ### Permanent Timelines
-Make Timeline Permanent or Closable (`Ctrl+Shift+P`, or `Ctrl+P` in Quick Action Keys mode) makes the current timeline permanent, so it can't be closed until you press it again. Permanent timelines are saved per account.
+Make Timeline Permanent or Closable (`Ctrl+Shift+P`, or `Ctrl+P` in Quick Action Keys mode) makes the current timeline permanent. You can't close a permanent timeline until you press the shortcut again. Fedra saves permanent timelines for each account.
 
 ### New Post Notifications
-Turn New Post Notifications On or Off (`Ctrl+Shift+N`, or `Ctrl+N` in Quick Action Keys mode) notifies you when new posts arrive in the current timeline, the same way as for notifications: with a system notification, only a sound, or not at all, as set in Options. It works in timelines that update live: Home, Local, Federated, Direct Messages, and lists. A burst of posts gives you one notification rather than one for each post, and your own posts never notify you. The setting is saved per account.
+Turn New Post Notifications On or Off (`Ctrl+Shift+N`, or `Ctrl+N` in Quick Action Keys mode) tells you when new posts arrive in the current timeline. Fedra uses the notification mode that you set in the options: a system notification, a sound, or nothing. This works in the timelines that update live: Home, Local, Federated, Direct Messages, and lists. Many posts that arrive together give one notification. Your own posts never give a notification. Fedra saves this setting for each account.
 
-To tell timelines apart by ear, use `Timelines -> Set Notification Sound...` to pick a sound file (MP3, Ogg, WAV, FLAC or M4A) for the current timeline, and `Use the Default Notification Sound` to go back. A timeline's sound plays when notifications are set to sound only, and a sound set on the Notifications timeline covers ordinary notifications too.
+To know which timeline a notification is from, give each timeline its own sound. Use `Timelines -> Set Notification Sound...` to select a sound file for the current timeline. Fedra plays MP3, Ogg, WAV, FLAC, and M4A files. To use the usual sound again, use `Timelines -> Use the Default Notification Sound`. Timeline sounds play when the notification mode is Sound only. A sound that you set on the Notifications timeline also plays for usual notifications.
 
 ### Clearing
-Clear Timeline (`Ctrl+Delete`) empties the current timeline, and Clear All Timelines (`Ctrl+Shift+Delete`) empties every open one. This only affects what Fedra shows: nothing is deleted from your server, new posts keep arriving, and refreshing brings back the latest page.
+Clear Timeline (`Ctrl+Delete`) removes all entries from the current timeline. Clear All Timelines (`Ctrl+Shift+Delete`) removes all entries from all open timelines. This changes only what Fedra shows. Nothing is deleted from your server, and new posts continue to arrive. To show the latest posts again, refresh the timeline.
 
 ### Refreshing
-Streaming timelines update themselves. `F5` refreshes the current timeline at any time, and `.` (Load More) fetches older entries. If a streaming timeline loses its connection, Fedra re-fetches it about once a minute until streaming comes back.
+Timelines that update live refresh automatically. Press `F5` to refresh the current timeline. Press `.` (Load More) to get older entries. If a live timeline loses its connection, Fedra gets it again about once a minute until the connection comes back.
 
 ## Window Visibility and Tray
-- Fedra runs with a tray icon menu:
+- The tray icon has a menu with two items:
   - `Show/Hide`
   - `Exit`
-- A global shortcut shows and hides the main window (default: `Ctrl+Alt+F`). You can change it on the **Global** tab of `Options -> General -> Customize Keyboard Shortcuts...`.
-- More global shortcuts let you use Fedra without its window. See [Global shortcuts](#global-shortcuts).
+- A global shortcut shows and hides the main window. The default is `Ctrl+Alt+F`. To change it, use the Global tab of `Options -> Customize Keyboard Shortcuts...`.
+- Other global shortcuts let you use Fedra when its window is hidden. See [Global Shortcuts](#global-shortcuts).
 
 ## Composing Posts
-`Ctrl+N` opens the compose dialog; `Ctrl+R`, `Ctrl+Shift+R`, `Ctrl+Q`, and `Ctrl+E` open it for a reply, an author-only reply, a quote, and an edit respectively. Every control has an access key, and the dialog title shows the character count for your instance's limit. You can type past the limit, but you will hear a warning sound when you do.
+`Ctrl+N` opens the compose dialog. These shortcuts also open it:
 
-The dialog offers:
+- `Ctrl+R` for a reply.
+- `Ctrl+Shift+R` for a reply to the author only.
+- `Ctrl+Q` for a quote.
+- `Ctrl+E` to edit your post.
 
-- **Content warning**: a checkbox plus the warning text field.
-- **Content type**: Default, plain text, Markdown, or HTML, for instances that support it. Editing a Markdown post gives you back your original Markdown, not the rendered text.
-- **Visibility**: Public, Unlisted, Followers only, or Direct. The initial value follows your account's default visibility.
-- **Post language**: a code like `en` or `de`, defaulting to your account's setting.
-- **Manage Media...**: add attachments, give each one a description, and mark the set as sensitive.
-- **Add Poll...**: add options up to your instance's limit, with a preset duration, optional multiple selections, and an option to hide vote counts until the poll closes.
-- **Schedule...**: pick a local date and time to publish at, or **Clear Schedule** to post immediately.
-- **Thread mode**: when checked, posting reopens the dialog as a reply to the post you just made, so you can write a thread without leaving the dialog.
+All controls have an access key. The dialog title shows the number of characters that you can still type on your instance. You can type more than the limit, but Fedra plays a warning sound when you do.
 
-If `Use enter to send posts` is enabled, `Enter` posts from the content field; otherwise use the Post button.
+The dialog has these controls:
+
+- Content warning: a check box and a field for the warning text.
+- Content type: Default, plain text, Markdown, or HTML, on instances that support it. When you edit a Markdown post, you get your original Markdown, not the rendered text.
+- Visibility: Public, Unlisted, Followers only, or Direct. It starts with the default visibility of your account.
+- Post language: a code such as `en` or `de`. It starts with the setting of your account.
+- `Manage Media...`: add attachments, add a description to each one, and mark them as sensitive.
+- `Add Poll...`: add options up to the limit of your instance. Select a duration, allow more than one choice, and hide the vote counts until the poll ends.
+- `Schedule...`: select a local date and time to publish the post. To post immediately, select `Clear Schedule`.
+- Thread mode: when you select it, the dialog opens again after you post, as a reply to your new post. This lets you write a thread in one dialog.
+
+If `Use enter to send posts` is on, press `Enter` in the content field to post. If it is off, use the Post button.
 
 ## Options
-Open options with `Ctrl+,`.
+To open the options, press `Ctrl+,`.
 
 ### General Tab
 - `Use enter to send posts`
@@ -126,11 +134,11 @@ Open options with `Ctrl+,`.
 - Updates:
   - `Stable releases`
   - `Test builds`
-- Notifications mode:
+- Notification mode:
   - Operating system notifications
   - Sound only
   - Disabled
-- `Notification Types...`: choose which notification types you get, in two groups. `Show in timelines` decides which types appear in the Notifications timeline at all. `Alert me with a sound or notification` decides which of those also make a sound or show a notification, so you can, for example, keep favorites and boosts in the timeline to review later without being interrupted by them. Everything is checked by default.
+- `Notification Types...`: select the notifications that you get. The dialog has two groups. `Show in timelines` sets which types show in the Notifications timeline. `Alert me with a sound or notification` sets which of these types also play a sound or show a notification. For example, you can keep favorites and boosts in the timeline to read later, without interruptions when they arrive. All types are on by default. The types are:
   - Mentions
   - Boosts
   - Favorites
@@ -143,15 +151,15 @@ Open options with `Ctrl+,`.
 - `Customize Keyboard Shortcuts...`
 
 ### Invisible Interface Tab
-This tab only appears on Windows.
+This tab shows only on Windows.
 
-- `Use the invisible interface`: turns the [global shortcuts](#global-shortcuts) on or off. The show and hide shortcut always works, so you can't lose a hidden window.
-- `Repeat the post at the start or end of a timeline`: when on, moving past the first or last post with a global shortcut reads that post again. When off, you hear nothing.
+- `Use the invisible interface`: turns the [global shortcuts](#global-shortcuts) on or off. The shortcut that shows and hides the window always works, so you can always get a hidden window back.
+- `Repeat the post at the start or end of a timeline`: when this is on and you move past the first or last post with a global shortcut, Fedra reads that post again. When it is off, Fedra says nothing.
 
 ### Timeline Tab
-- `Restore open timelines on startup` (when off, only your default timelines are reopened)
-- `Sync home and notifications position with your server` (saves where you are in Home and Notifications to your instance about once a minute and when you exit, and picks up from there at startup, so you can carry on from another app that syncs its position, such as Tusky or Ivory, and the other way around)
-- `Load older posts to find your saved position` (when your saved position is further back than the first page of posts, keeps loading older posts until it finds it, up to 10 pages; if that post was deleted, you land on the next older one)
+- `Restore open timelines on startup`: when this is off, Fedra opens only your default timelines at startup.
+- `Sync home and notifications position with your server`: Fedra saves your position in Home and Notifications on your server about once a minute, and when you exit. At startup, Fedra goes to that position. Other apps that sync their position, such as Tusky or Ivory, use the same position.
+- `Load older posts to find your saved position`: if your saved position is older than the first page of posts, Fedra loads older posts until it finds it. Fedra loads up to 10 pages. If the post was deleted, Fedra goes to the next older post.
 - Autoload posts:
   - Never
   - When reaching the end
@@ -169,64 +177,65 @@ This tab only appears on Windows.
 - `Show oldest timeline entries first`
 - `Always preserve thread order`
 - `Load more on find next`
-- `Customize Default Timelines...`
-  - Home and Notifications are opened at startup
-  - Any of Local, Federated, Direct Messages, Bookmarks, Favorites, Mentions, and Sent can be added
+- `Customize Default Timelines...`:
+  - Fedra always opens Home and Notifications at startup.
+  - You can add Local, Federated, Direct Messages, Bookmarks, Favorites, Mentions, and Sent.
 
 ### Templates Tab
-Customize how posts appear in each timeline using [Jinja2-style](https://jinja.palletsprojects.com/en/stable/templates/) templates.
+Templates set how posts show in each timeline. They use [Jinja2](https://jinja.palletsprojects.com/en/stable/templates/) syntax.
 
-- Select a timeline from the dropdown (or **Global Default** to set the fallback used by all timelines without their own override).
-- Edit the **Window title template**, **Post template**, **Boost template**, and **Quote template** text fields.
-- When the Notifications timeline is selected, a **Favorite template** field also appears, controlling how "X favorited your post" entries are rendered, the same way the Boost template controls boost entries. It's hidden for other timelines since they never show favorite notifications.
-- Click **Reset to default** to restore the selected timeline's templates to the global default (or restore the global default to the built-in default).
+- Select a timeline in the list. To set the templates for all timelines that don't have their own, select `Global Default`.
+- Edit the `Window title template`, `Post template`, `Boost template`, and `Quote template` fields.
+- When you select the Notifications timeline, a `Favorite template` field also shows. It sets how "X favorited your post" entries show, as the boost template does for boosts. Other timelines don't show favorite notifications, so the field doesn't show for them.
+- To set the templates of the selected timeline back to the global default, select `Reset to default`. For the global default, this sets the built-in templates again.
 
-Templates are rendered per-entry each time a timeline is displayed. If a template contains a syntax error, the entry falls back to `author: content`.
+Fedra renders the template for each entry each time it shows a timeline. If a template has a syntax error, the entry shows as `author: content`.
 
 #### Available Variables
 
 | Variable | Value |
 |---|---|
-| `{{ author }}` | Display name (respects the hide emoji in names setting) |
+| `{{ author }}` | Display name. Uses the Hide emoji in names setting. |
 | `{{ username }}` | `@acct` handle |
-| `{{ content }}` | Post text, HTML-stripped (respects content warning display setting) |
-| `{{ content_warning }}` | Spoiler text, or empty if none |
-| `{{ relative_time }}` | Relative timestamp, e.g. `2 hours ago` |
-| `{{ absolute_time }}` | Absolute local timestamp, e.g. `Feb 17, 2026 at 2:30 PM` |
+| `{{ content }}` | Post text without HTML. Uses the Content warning display setting. |
+| `{{ content_warning }}` | Content warning text, or empty |
+| `{{ relative_time }}` | Relative time, for example `2 hours ago` |
+| `{{ absolute_time }}` | Local date and time, for example `Feb 17, 2026 at 2:30 PM` |
 | `{{ visibility }}` | `Public`, `Unlisted`, `Followers only`, or `Direct` |
-| `{{ reply_count }}` | e.g. `3 replies` |
-| `{{ boost_count }}` | e.g. `1 boost` |
-| `{{ favorite_count }}` | e.g. `5 favorites` |
-| `{{ client }}` | Posting app name, or empty if unknown |
-| `{{ media }}` | Media attachment summary, or empty if none |
-| `{{ poll }}` | Poll summary, or empty if none |
-| `{{ booster }}` | Display name of the person who boosted (boost template only; empty for regular posts) |
-| `{{ booster_username }}` | `@acct` handle of the booster (boost template only) |
-| `{{ favoriter }}` | Display name of the person who favorited your post (favorite template only) |
-| `{{ favoriter_username }}` | `@acct` handle of the favoriter (favorite template only) |
-| `{{ quote_author }}` | Display name of the quoted post's author (quote/boost templates) |
-| `{{ quote_username }}` | `@acct` handle of the quoted post's author (quote/boost templates) |
-| `{{ quote_content }}` | Text content of the quoted post (quote/boost templates) |
-| `{{ quote_media }}` | Media summary of the quoted post (quote/boost templates) |
-| `{{ quote_poll }}` | Poll summary of the quoted post (quote/boost templates) |
-| `{{ app }}` | The application name (window title template only) |
-| `{{ timeline }}` | The active timeline name (window title template only) |
-| `{{ account }}` | Your `@acct` handle (window title template only) |
+| `{{ reply_count }}` | For example, `3 replies` |
+| `{{ boost_count }}` | For example, `1 boost` |
+| `{{ favorite_count }}` | For example, `5 favorites` |
+| `{{ client }}` | Name of the app that posted, or empty if not known |
+| `{{ media }}` | Summary of media attachments, or empty |
+| `{{ poll }}` | Summary of the poll, or empty |
+| `{{ booster }}` | Display name of the user who boosted. Boost template only. Empty for usual posts. |
+| `{{ booster_username }}` | `@acct` handle of the user who boosted. Boost template only. |
+| `{{ favoriter }}` | Display name of the user who favorited your post. Favorite template only. |
+| `{{ favoriter_username }}` | `@acct` handle of the user who favorited your post. Favorite template only. |
+| `{{ quote_author }}` | Display name of the author of the quoted post. Quote and boost templates. |
+| `{{ quote_username }}` | `@acct` handle of the author of the quoted post. Quote and boost templates. |
+| `{{ quote_content }}` | Text of the quoted post. Quote and boost templates. |
+| `{{ quote_media }}` | Media summary of the quoted post. Quote and boost templates. |
+| `{{ quote_poll }}` | Poll summary of the quoted post. Quote and boost templates. |
+| `{{ app }}` | Name of the app. Window title template only. |
+| `{{ timeline }}` | Name of the current timeline. Window title template only. |
+| `{{ account }}` | Your `@acct` handle. Window title template only. |
 
 #### Conditionals
 
-You can use `{% if %}` blocks to show text only when a variable is non-empty:
+To show text only when a variable is not empty, use an `{% if %}` block:
 
 ```
 {% if client %}, via {{ client }}{% endif %}
 ```
 
 ### Filters Tab
-Hide post types per timeline, on the client side only. Select a timeline from the dropdown, then check the types you want to hide:
+Hide types of posts in each timeline. These filters apply only in Fedra. Select a timeline in the list, then select the types to hide:
+
 - Original posts (not replies or boosts)
 - Replies to others
 - Replies to me
-- Threads (self-replies)
+- Threads (replies to your own posts)
 - Boosts
 - Quote posts
 - Posts with media
@@ -234,34 +243,39 @@ Hide post types per timeline, on the client side only. Select a timeline from th
 - Your posts
 - Your replies
 
-These are separate from your instance's own filters, which are managed in `Options -> Manage Filters...`.
+The filters on your server are different. To manage them, use `Options -> Manage Filters...`.
 
 ## Keyboard Shortcuts
 
-Every shortcut in the table below can be changed in `Options -> Customize Keyboard Shortcuts...`. Normal mode and Quick Action Keys mode have their own independent bindings, and actions listed as `None` have no default binding but can be given one.
+You can change all the shortcuts in the tables below in `Options -> Customize Keyboard Shortcuts...`. Normal mode and Quick Action Keys mode each have their own shortcuts. An action that shows `None` has no default shortcut, but you can give it one.
 
 ### Customizing Shortcuts
-The dialog has a **Quick Keys Mode** tab and a **Normal Mode** tab. On each:
+The dialog has a Quick Keys Mode tab and a Normal Mode tab. On Windows, it also has a Global tab. Each tab has these buttons:
 
-- **Enter key behavior** picks between `Enter` opening links with `Alt+Enter` viewing the thread, or the reverse. Binding either action by hand shows this as `Custom`.
-- **Set Shortcut...** opens a capture dialog: click in the key field and press the combination you want. The detected chord is announced as you type it, and if the combination is already assigned to another action, you are asked whether to reassign it.
-- **Clear Shortcut** unbinds the selected action, **Reset to Default** restores just that action, and **Reset All to Defaults** restores the whole mode.
+- `Set Shortcut...`: opens a dialog. Select the key field, then press the key combination. Fedra announces the combination as you press it. If another action already uses the combination, Fedra asks if you want to assign it to this action.
+- `Clear Shortcut`: removes the shortcut from the selected action.
+- `Reset to Default`: sets the default shortcut for the selected action.
+- `Reset All to Defaults`: sets the default shortcuts for all actions on the tab.
 
 ### Fixed Keys
-These are built into the lists and cannot be customized:
+You can't change these keys:
 
-- `Tab` / `Shift+Tab`: Move between the Timelines list and the Posts list
-- `Up Arrow` / `Down Arrow`: Move by one entry
-- `Home` / `End`: Jump to the first or last entry
-- `Page Up` / `Page Down`: Move by 20 entries
-- `Ctrl+1`..`Ctrl+9`: Switch to timeline 1-9
-- `1`..`9`: Switch to timeline 1-9 (Quick Action Keys mode only)
-- `Shift+F10` or the applications key: Open the actions menu for the focused post, or for the focused user in the followers/following dialogs
+- `Tab` and `Shift+Tab`: move between the Timelines list and the Posts list.
+- `Up Arrow` and `Down Arrow`: move one entry.
+- `Home` and `End`: go to the first or last entry.
+- `Page Up` and `Page Down`: move 20 entries.
+- `Ctrl+1` through `Ctrl+9`: switch to timeline 1 through 9.
+- `1` through `9`: switch to timeline 1 through 9. Quick Action Keys mode only.
+- `Shift+F10` or the Applications key: open the actions menu for the selected post, or for the selected user in the followers and following dialogs.
 
-### Global shortcuts
-Global shortcuts work from any program, whether Fedra's window is shown, hidden, or behind other windows. Moving through posts reads each one aloud, through your screen reader when one is running, and switching timelines reads the timeline's name and the post you land on. Almost every action from the Normal and Quick Action Keys tabs is available as a global shortcut too. They're off by default: turn them on with `Use the invisible interface` on the **Invisible Interface** tab of Options. Show and hide works either way. On the same tab, turn off `Repeat the post at the start or end of a timeline` to hear nothing when you move past the first or last post, instead of the same post again. You can change, clear, or add any of them on the **Global** tab of Customize Keyboard Shortcuts.
+### Global Shortcuts
+Global shortcuts work from all programs, when the Fedra window is visible, hidden, or behind other windows. When you move through posts, Fedra reads each post through your screen reader, if one is running. When you switch timelines, Fedra reads the name of the timeline and the post that you go to. You can also use almost all the actions of Normal mode and Quick Action Keys mode as global shortcuts.
 
-Each default is Fedra's own Normal mode shortcut for the same action with Ctrl, Alt, and Win added, so `Ctrl+P` for a profile becomes `Ctrl+Alt+Win+P`, and the arrows that move through the list become `Ctrl+Alt+Win` and an arrow. Show and hide keeps `Ctrl+Alt+F`. Actions not listed here, including Find, View Thread, Delete Post, Open in Browser, and Exit, start with no global shortcut, because their keys would clash with another action or with Windows. `Ctrl+Alt+Shift+Win` is the Office key, so no default uses it with a letter that opens an Office app, such as O for Outlook.
+Global shortcuts are off by default. To turn them on, select `Use the invisible interface` on the Invisible Interface tab of the options. The shortcut that shows and hides the window always works. To change, clear, or add global shortcuts, use the Global tab of `Options -> Customize Keyboard Shortcuts...`.
+
+Each default global shortcut is the Normal mode shortcut for the same action, with `Ctrl`, `Alt`, and `Win` added. For example, `Ctrl+P` for a profile becomes `Ctrl+Alt+Win+P`. The arrow keys that move through the list become `Ctrl+Alt+Win` with an arrow key. The show and hide shortcut stays `Ctrl+Alt+F`.
+
+Some actions have no default global shortcut, because their keys conflict with other actions or with Windows. These include Find, View Thread, Delete Post, Open in Browser, Clear Timeline, and Exit. `Ctrl+Alt+Shift+Win` is the Office key. Thus, no default uses it with a letter that opens an Office app, such as O for Outlook.
 
 | Action | Default |
 |---|---|
@@ -313,9 +327,9 @@ Each default is Fedra's own Normal mode shortcut for the same action with Ctrl, 
 | Options... | `Ctrl+Alt+Win+,` |
 | View Help | `Ctrl+Alt+Win+F1` |
 
-If another program already uses one of these, Fedra says so when it starts, and that shortcut does nothing until you change it.
+If another program already uses one of these shortcuts, Fedra tells you at startup. That shortcut doesn't work until you change it.
 
-### Default Bindings
+### Default Shortcuts
 
 | Action | Normal mode | Quick Action Keys mode |
 |---|---|---|
@@ -379,249 +393,262 @@ If another program already uses one of these, Fedra says so when it starts, and 
 | Manage Accounts... | `Ctrl+Alt+A` | `Ctrl+Alt+A` |
 | Manage Filters... | None | None |
 | Manage Lists... | None | None |
+| Message Requests... | None | None |
 | Edit Profile... | `Ctrl+Shift+E` | `Ctrl+Shift+E` |
 | Options... | `Ctrl+,` | `Ctrl+,` |
 | Customize Keyboard Shortcuts... | None | None |
 | Check for Updates... | None | None |
 | View Help | `F1` | `F1` |
 
-Actions with no default binding are still reachable from the menu bar or the post context menu. **View Boosts** and **View Favorites** only appear in the Post menu when the selected post actually has boosts or favorites, and **Edit Post**, **Delete Post**, and **Pin / Unpin Post** only appear for your own posts.
+You can use actions that have no default shortcut from the menu bar or from the context menu of a post. View Boosts and View Favorites show in the Post menu only when the selected post has boosts or favorites. Edit Post, Delete Post, and Pin / Unpin Post show only for your own posts.
 
 ### Quick Action Keys Mode
-Toggle with `Ctrl+Shift+Q`. While it is on, the single-letter bindings in the table above act on the selected post instead of being typed, and `Backspace` closes the current timeline.
+Press `Ctrl+Shift+Q` to turn this mode on or off. When it is on, the single-letter shortcuts in the table above do actions on the selected post. They don't type letters. `Backspace` closes the current timeline.
 
 ## Message Requests
-Mastodon 4.3 and later hold back private mentions from people you don't follow as message requests, rather than letting them reach your notifications. Fedra checks for them about once a minute and tells you when new ones are waiting, using your notification style. Open `File -> Message Requests...` to see who's asking, how many messages they sent and the latest one, then accept or dismiss each request. Accepting brings their messages into your notifications and direct messages. It works the other way too: when someone doesn't follow you, the relationship section of their profile warns that your direct messages may reach them as a message request, since Mastodon gives the sender no sign of it.
+Mastodon 4.3 and later keep private mentions from people that you don't follow as message requests. These don't show in your notifications. Fedra checks for message requests about once a minute. When new ones arrive, Fedra tells you in your notification mode. The Options menu shows how many requests wait, for example `Message Requests (2)...`.
+
+Open `Options -> Message Requests...` to see who sent each request, how many messages they sent, and the latest message. Accept or dismiss each request. When you accept a request, its messages show in your notifications and direct messages.
+
+The same thing can occur to your own direct messages. Mastodon doesn't tell the sender. Thus, when a user doesn't follow you, the relationship section of their profile tells you that your direct messages to them can arrive as a message request.
 
 ## User Aliases
-To show someone under a name you choose, open their profile or find them in a followers or following list, open the actions menu, and choose Set Alias. The alias replaces their display name everywhere in your timelines, for every account you use in Fedra. To go back to their display name, set the alias again and leave it empty.
+To show a user under a name that you select:
+
+1. Open their profile, or find them in a followers or following list.
+2. Open the actions menu.
+3. Select `Set Alias...`.
+
+The alias shows in place of their display name in all your timelines, for all your accounts in Fedra. To show their display name again, set the alias again and leave it empty.
 
 ## Accounts
-`Ctrl+Alt+A` opens the accounts dialog, where you can **Add**, **Remove**, or **Switch To** an account. Adding an account walks you through authorizing Fedra on your instance in the browser. `Ctrl+[` and `Ctrl+]` cycle accounts directly; each account keeps its own set of open timelines, and the newly active account's handle is announced when you switch.
+`Ctrl+Alt+A` opens the accounts dialog. Use the `Add...`, `Remove`, and `Switch To` buttons to manage your accounts. When you add an account, Fedra opens your instance in the browser, where you authorize Fedra. `Ctrl+[` and `Ctrl+]` switch to the previous or next account. Each account keeps its own open timelines. When you switch, Fedra announces the handle of the new account.
 
 ## Profile Editing
-`Ctrl+Shift+E` opens your profile for editing:
+`Ctrl+Shift+E` opens your profile for editing. You can change:
 
-- Display name and bio
-- Avatar and header images
+- The display name and bio.
+- The avatar and header images.
+- The profile fields, up to the limit of your instance.
 - `Require follow approval`
 - `Bot account`
 - `Discoverable in directory`
-- Default post visibility
+- The default post visibility.
 - `Mark media as sensitive by default`
-- Default post language, as a code like `en` or `de`
+- The default post language, as a code such as `en` or `de`.
 
 ## Lists
-`Options -> Manage Lists...` shows your Mastodon lists, with buttons to **Add**, **Edit**, view and change **Members**, and **Delete**. Open a list as a timeline with `Timelines -> Open List...`. Individual users can also be added to a list from the **Actions...** menu in the profile and followers/following dialogs. List timelines stream in real time.
+`Options -> Manage Lists...` shows your Mastodon lists. Use its buttons to add, edit, and delete lists, and to see and change their members. To open a list as a timeline, use `Timelines -> Open List...`. You can also add a user to a list from the `Actions...` menu in the profile, followers, and following dialogs. List timelines update live.
 
 ## Server-Side Filters
-`Options -> Manage Filters...` manages the filters stored on your instance, which apply everywhere you use Mastodon, not just in Fedra. Each filter has a title, the contexts it applies to, an action, an optional expiry, and a list of keywords, each of which can be marked whole-word.
+`Options -> Manage Filters...` manages the filters on your instance. These filters apply in all Mastodon apps, not only in Fedra. Each filter has a title, the contexts where it applies, an action, an optional expiry time, and a list of keywords. You can set each keyword to match only whole words.
 
 ## Finding Text in a Timeline
-`Ctrl+F` prompts for text and moves to the next matching entry, respecting your timeline sort direction. `F3` and `Shift+F3` repeat the search forwards and backwards. With `Load more on find next` enabled in the Timeline options, Fedra keeps fetching older posts while searching instead of stopping at the end of what is already loaded.
+`Ctrl+F` asks for text, then goes to the next entry that contains it. The search follows the sort order of your timeline. `F3` finds the next match, and `Shift+F3` finds the previous match. If `Load more on find next` is on in the Timeline options, Fedra loads older posts during the search. If it is off, the search stops at the end of the loaded posts.
 
 ## Media Player
 
-Press `Ctrl+I` (or `I` in Quick Action Keys mode) on a post with media attachments to open the media player. If the post has multiple attachments, a dialog lets you choose which one to play.
+Press `Ctrl+I`, or `I` in Quick Action Keys mode, on a post with media to open the media player. If the post has more than one attachment, select the attachment to play in the dialog that opens.
 
 ### Media Player Keys
 
 | Key | Action |
-|-----|--------|
-| `Space` | Play / Pause |
-| `Left Arrow` | Seek backward 10 seconds |
-| `Right Arrow` | Seek forward 10 seconds |
-| `Up Arrow` | Volume up |
-| `Down Arrow` | Volume down |
-| `E` | Announce elapsed time |
-| `R` | Announce remaining time |
-| `T` | Announce total duration |
-| `D` | Download media file |
-| `Escape` | Close media player |
+|---|---|
+| `Space` | Play or pause |
+| `Left Arrow` | Go back 10 seconds |
+| `Right Arrow` | Go forward 10 seconds |
+| `Up Arrow` | Increase the volume |
+| `Down Arrow` | Decrease the volume |
+| `E` | Announce the elapsed time |
+| `R` | Announce the remaining time |
+| `T` | Announce the total time |
+| `D` | Download the media file |
+| `Escape` | Close the media player |
 
 ## Search
-- Use `Ctrl+/` to open Search.
+- Press `Ctrl+/` to open the search.
 - Search types:
   - All
   - Accounts
   - Hashtags
   - Posts
-- Results open in a dedicated timeline (`Search: <query>`) and support paging.
-- `Alt+Enter` on an account or hashtag result opens its timeline.
+- The results open in a new timeline, named `Search: <query>`. You can load more results.
+- To open the timeline of an account or hashtag in the results, press `Alt+Enter` on it.
 
 ## Links in Posts
-`Enter` on a post opens its links. If the post has more than one link, or `Always prompt to open links` is enabled, a dialog lists them with **Open** and **Copy** buttons. Tracking parameters are stripped from URLs unless you turn that off in the General options.
+Press `Enter` on a post to open its links. If the post has more than one link, or if `Always prompt to open links` is on, a dialog shows the links. Use its `Open` and `Copy` buttons. Fedra removes tracking parameters from URLs, unless you turn this off in the General options.
 
 ## Configuration File
-- Installed build: `%APPDATA%\Fedra\config.json`
-- Portable/uninstalled run: `config.json` next to the executable
+- Windows, installed: `%APPDATA%\Fedra\config.json`
+- Windows, portable: `config.json` in the same folder as the executable
+- macOS: `~/Library/Application Support/Fedra/config.json`
 
 ## Changelog
 
 ### Version 0.7.0
-* Added Clear Timeline and Clear All Timelines.
-* Added a macOS version: a native app on a drag-to-install disk image, signed and notarized by Apple.
-* Added a note to the profiles of people who don't follow you that your direct messages may reach them as a message request.
-* Added a run at startup option to the installer, which keeps Fedra hidden at startup if you left it hidden.
-* Added an invisible interface: global shortcuts that move through your timelines, read posts, and perform almost any Fedra action from anywhere, spoken through your screen reader. Turn it on from the new Invisible Interface tab of the options dialog.
-* Added an option to sync your Home and Notifications position with your server, and one to load older posts until Fedra finds your saved position.
-* Added message requests. When your server holds back private mentions from people you don't follow, Fedra tells you, and `File -> Message Requests...` lets you accept or dismiss them.
-* Added new post notifications for any timeline that updates live, and an optional notification sound of its own for each timeline.
-* Added permanent timelines, which can't be closed until you make them closable again.
-* Added the alt text of media attachments to the post details dialog.
-* Added user aliases, to show anyone under a name you choose.
-* Autocomplete now works inline as you type.
-* Classic Windows Notifications is now called operating system notifications.
-* Fedra is about a fifth smaller.
-* Notification types can now show in timelines without making a sound or notification.
-* Open timelines are now saved per account, and whenever they change.
-* Profile editing now shows as many fields as your instance allows.
-* Fixed long profile field values widening the edit profile dialog past the window.
-* Fixed numpad keys triggering the wrong shortcuts with Num Lock off.
-* Fixed pressing Space while media was loading needing another press to start playback.
-* Fixed replying to your own post mentioning yourself.
-* Fixed the relationship heading showing on profiles with nothing under it.
+- Added Clear Timeline and Clear All Timelines.
+- Added a macOS version: a native app on a drag-to-install disk image, signed and notarized by Apple.
+- Added a note to the profiles of people who don't follow you that your direct messages may reach them as a message request.
+- Added a run at startup option to the installer, which keeps Fedra hidden at startup if you left it hidden.
+- Added an invisible interface: global shortcuts that move through your timelines, read posts, and perform almost any Fedra action from anywhere, spoken through your screen reader. Turn it on from the new Invisible Interface tab of the options dialog.
+- Added an option to sync your Home and Notifications position with your server, and one to load older posts until Fedra finds your saved position.
+- Added message requests. When your server holds back private mentions from people you don't follow, Fedra tells you, and `Options -> Message Requests...` lets you accept or dismiss them.
+- Added new post notifications for any timeline that updates live, and an optional notification sound of its own for each timeline.
+- Added permanent timelines, which can't be closed until you make them closable again.
+- Added the alt text of media attachments to the post details dialog.
+- Added user aliases, to show anyone under a name you choose.
+- Autocomplete now works inline as you type.
+- Classic Windows Notifications is now called operating system notifications.
+- Fedra is about a fifth smaller.
+- Notification types can now show in timelines without making a sound or notification.
+- Open timelines are now saved per account, and whenever they change.
+- Profile editing now shows as many fields as your instance allows.
+- Fixed long profile field values widening the edit profile dialog past the window.
+- Fixed numpad keys triggering the wrong shortcuts with Num Lock off.
+- Fixed pressing Space while media was loading needing another press to start playback.
+- Fixed replying to your own post mentioning yourself.
+- Fixed the relationship heading showing on profiles with nothing under it.
 
 ### Version 0.6.0
-* Added a customizable favorite template, with `{{ favoriter }}` and `{{ favoriter_username }}` variables.
-* Added a notification types dialog to the general options, so you can pick which kinds of notifications reach you.
-* Added a send direct message action to the user actions menu.
-* Added a turn notifications on and off action to the user actions menu, for people you already follow.
-* Added an image viewer, so image attachments no longer get handed to the audio player.
-* Added view boosts and view favorites to the post context menu.
-* Attachments with no description are no longer announced as "alt N: (missing)".
-* Fixed copy post staying greyed out on a thread that holds a single post.
-* Fixed play media reporting no media on a quote post whose media belongs to the quoted post.
-* Fixed posts silently disappearing from streaming timelines when an instance sent a field Fedra did not expect.
-* Fixed quoted posts reading out "RE:" followed by a link when the quoted post was itself a quote.
-* Fixed refreshing a timeline throwing away everything you had loaded with load more.
-* Fixed the auto updater failing with an asset error.
-* Fixed the nested quote in a quoted thread looking broken until you refreshed by hand.
-* Fixed timelines never refreshing on instances without working streaming, such as GoToSocial.
-* Media playback no longer needs the Windows Media Player Legacy optional feature.
-* Removed the enter behavior combo from the shortcuts dialog.
-* Screen readers no longer reread the post you are on when the timeline refreshes in the background.
-* The mentions and sent timelines now have their own templates, and can be filtered.
-* The posts to fetch setting now applies to every fetch, not only to load more.
+- Added a customizable favorite template, with the `{{ favoriter }}` and `{{ favoriter_username }}` variables.
+- Added a notification types dialog to the General options. Select the types of notifications that you get.
+- Added a Send Direct Message action to the user actions menu.
+- Added an action to the user actions menu to turn notifications on or off for a user that you follow.
+- Added an image viewer. Image attachments no longer open in the audio player.
+- Added View Boosts and View Favorites to the post context menu.
+- Attachments without a description are no longer announced as "alt N: (missing)".
+- Fixed Copy Post being unavailable on a thread with only one post.
+- Fixed Play Media reporting no media on a quote post when the media is on the quoted post.
+- Fixed posts disappearing from live timelines when an instance sent a field that Fedra didn't expect.
+- Fixed quoted posts reading "RE:" and a link when the quoted post was also a quote.
+- Fixed refreshing a timeline removing the posts that you loaded with Load More.
+- Fixed the updater failing with an asset error.
+- Fixed the nested quote in a quoted thread showing incorrectly until you refreshed.
+- Fixed timelines not refreshing on instances without working live updates, such as GoToSocial.
+- Media playback no longer needs the Windows Media Player Legacy optional feature.
+- Removed the Enter key behavior control from the shortcuts dialog.
+- Screen readers no longer read the current post again when the timeline refreshes in the background.
+- The Mentions and Sent timelines now have their own templates and filters.
+- The posts to fetch setting now applies to all fetches, not only to Load More.
 
 ### Version 0.5.1
-* Added native ARM64 builds for Windows on ARM devices.
-* Control+enter now sends posts when focused anywhere in the compose dialog.
-* Fixed Fedra occasionally interacting with the rong post in timelines.
-* Fixed pressing control on its own sometimes triggering the delete post action.
-* The media player now tells you how to install the Windows Media Player Legacy optional feature if it fails to initialize, instead of showing a generic error.
+- Added native Arm64 builds for Windows on Arm devices.
+- `Ctrl+Enter` now sends posts from all controls in the compose dialog.
+- Fixed Fedra sometimes doing an action on the wrong post in timelines.
+- Fixed pressing `Ctrl` alone sometimes doing the Delete Post action.
+- If the media player can't start, it now tells you how to install the Windows Media Player Legacy optional feature, instead of showing a general error.
 
 ### Version 0.5.0
-* Account usernames are now properly resolved when replying to a post from a remote instance's local timeline.
-* Added a hotkey customization dialog! It is now possible to change any keybinding in Fedra, for both the regular and quick key modes, through a simple and intuitive dialog.
-* Added a sent timeline option, to bring up your current account's timeline in a buffer.
-* Added a view timeline button to the hashtags dialog.
-* Added an add to list option to the actions menu for a user.
-* Added Ctrl+C as a shortcut to copy the focused post's link.
-* Added page up and page down keyboard shortcuts to the timeline list, allowing you to move by 20 posts at a time.
-* Added shortcut keys to controls in the compose post dialog.
-* Added shortcuts to the media player dialog to speak your loaded track's elapsed, remaining, and total times, bound to e, r, and t respectively.
-* Added the ability to customize your window title using a template.
-* Fixed copying posts in user timelines.
-* Fixed editing a post with the content-type set to markdown, you'll now be able to edit your original markdown content rather than the Mastodon-rendered text.
-* Fixed link previews getting coppied when copying post text.
-* Fixed opening user timelines from the local timeline of a remote instance.
-* Fixed posts sometimes automatically rereading in the timeline list.
-* Indentation in post bodies is now properly preserved.
-* It is now possible to view the quoter's profile or timeline when on a quoted post, Similar to how boosted posts already work.
-* Pressing the applications key in the followers or following dialogs will now bring up the actions menu.
-* Removed the limitations on what timelines you must have open at all times. In other words, it is now possible to close your home and notification timelines if you so desire. Additionally added home and notification options to the timeline menu to bring them back.
-* Timelines without proper web socket streaming support should now correctly refresh periodically.
-* Trailing dashes and other junk are now stripped from the end of post bodies when copying them.
+- Fedra now finds the correct account names when you reply to a post from the Local timeline of another instance.
+- Added a dialog to change the keyboard shortcuts. You can change all shortcuts in Fedra, for Normal mode and Quick Action Keys mode.
+- Added the Sent timeline, which shows the timeline of your current account.
+- Added a View Timeline button to the hashtags dialog.
+- Added an Add to List option to the actions menu for a user.
+- Added `Ctrl+C` to copy the link of the selected post.
+- Added `Page Up` and `Page Down` to the timeline list, to move 20 posts at a time.
+- Added access keys to the controls in the compose dialog.
+- Added shortcuts to the media player to announce the elapsed, remaining, and total time: `E`, `R`, and `T`.
+- Added a template for the window title.
+- Fixed copying posts in user timelines.
+- Fixed editing a Markdown post. You now edit your original Markdown, not the text that Mastodon rendered.
+- Fixed link previews being copied when you copy the text of a post.
+- Fixed opening user timelines from the Local timeline of another instance.
+- Fixed posts sometimes being read again in the timeline list.
+- Fedra now keeps the indentation in posts.
+- You can now open the profile or timeline of the user who quoted a post, as you can for boosted posts.
+- The Applications key now opens the actions menu in the followers and following dialogs.
+- Removed the timelines that you always had to keep open. You can now close the Home and Notifications timelines. The Timelines menu has items to open them again.
+- Timelines without working live updates now refresh at regular intervals.
+- Fedra now removes trailing dashes and other extra characters from the end of posts when you copy them.
 
 ### Version 0.4.0
-* Added an actions button to the follower/following dialogs, working the exact same way as it does in the view profile dialog.
-* Find in timeline now respects your timeline sort direction.
-* Fixed a bug where going to the bottom of a thread, hitting home, and then performing an action would perform that action on the post you were previously on, not the newly focused one.
-* Fixed Fedra crashing when exiting from the system tray.
-* Fixed hashtags showing in the mentions dialog as @tags@instance.domain.
-* Fixed modal dialogs not stacking how you'd expect, leading to you sometimes ending up with a bunch of ghost dialogs that you'd only discover when hiding Fedra's window.
-* Fixed quote posts not rendering properly in the webview.
-* Fixed streaming not working on instances such as mastodon.social.
-* Fixed the compose dialog closing and taking your post content with it on error.
-* Fixed your list position being randomly moved up a few items sometimes.
-* Follower relationships are now shown in the follower/following dialogs.
-* It is now possible to mark media as sensitive.
-* It is now possible to mute/unmute hashtags directly in Fedra.
-* Made Fedra expand quote posts much more reliably.
-* Opening a thread will now put you on the post you selected from that thread, not the first post.
-* Sensitive media in posts is now properly handled by Fedra.
-* Swapped the open link and view thread hotkeys, so now enter opens links in posts and alt+enter opens the thread.
-* Switched to a fully custom list control, backed by [AccessKit](https://accesskit.dev), to prevent screen readers from rereading the focused item every minute among other things.
-* The followers/following dialogs now properly fetch users from remote instances, and give you progress as they load the lists.
-* The media player dialog will now be properly focused after downloading media.
-* Various little UI tweaks, for example adding accelerators where there previously were none.
+- Added an actions button to the followers and following dialogs. It works as it does in the profile dialog.
+- Find in Timeline now follows the sort order of your timeline.
+- Fixed actions applying to the previous post after you went to the bottom of a thread and pressed `Home`.
+- Fixed Fedra stopping when you exited from the tray.
+- Fixed hashtags showing as @tags@instance.domain in the mentions dialog.
+- Fixed dialogs showing in the wrong order. Sometimes, extra dialogs showed only when you hid the Fedra window.
+- Fixed quote posts showing incorrectly in the post details dialog.
+- Fixed live updates on instances such as mastodon.social.
+- Fixed the compose dialog closing and losing your post when an error occurred.
+- Fixed your position in the list sometimes moving up a few items.
+- The followers and following dialogs now show your relationship with each user.
+- You can now mark media as sensitive.
+- You can now mute and unmute hashtags in Fedra.
+- Fedra now opens quote posts much more reliably.
+- When you open a thread, Fedra now goes to the post that you selected, not the first post.
+- Fedra now handles sensitive media in posts correctly.
+- Swapped the Open Links and View Thread shortcuts. `Enter` now opens links, and `Alt+Enter` opens the thread.
+- Changed to a custom list control that uses [AccessKit](https://accesskit.dev). This stops screen readers from reading the selected item again every minute, and fixes other problems.
+- The followers and following dialogs now load users from other instances correctly, and show progress while they load.
+- The media player now gets the focus after a download.
+- Added access keys and made other small changes to the user interface.
 
 ### Version 0.3.1
-* Added a mentions timeline.
-* Added an option to open the local timeline for a specific instence.
-* Added the ability to play back and download media in posts!
-* Fixed quick keys not disabling properly until you changed your list position.
-* You will no longer get a select user dialog with two of the same entry for posts where a user boosts their own post.
-* Your last-viewed post is now automatically restored upon relaunch if it is successfully fetched.
+- Added a Mentions timeline.
+- Added an option to open the Local timeline of a specific instance.
+- Added media playback and download for posts.
+- Fixed Quick Action Keys mode not turning off until you moved in the list.
+- The select user dialog no longer shows the same user two times when a user boosts their own post.
+- Fedra now goes back to your last post at startup, if it can get that post.
 
 ### Version 0.3.0
-* Added an option to hide the totals from polls, and switched to preset amounts of time for poll durations.
-* Added an option to restore previously opened timelines on startup.
-* Added an option to show link previews in the timeline.
-* Added many more supported extensions to the add media dialog.
-* Added support for managing and opening list timelines.
-* Added support for reading and writing quote posts.
-* Added a new timeline filters tab to the options dialog, allowing you to filter your timelines on the client side.
-* Added the ability to schedule posts.
-* Added the {{ booster_username }} template variable for consistent @username display.
-* Added a thread mode check box to the new post dialog. When checked, every time you hit post, you'll get the dialog again, and be replying to your previous post.
-* Fedra will now respect the account-wide default post visibility in the new post dialog.
-* Fixed message duplication in the direct messages timeline.
-* Fixed the description fields in the add media dialog not showing up.
-* Fixed the post context menu not showing hotkeys and post-specific actions such as edit or delete.
-* Fixed the post context menu showing incorrect labels for actions on boosted/favorited posts.
-* It is now possible to interact with follower requests.
-* It is now possible to reorder your timelines with ctrl+shift+left/right arrow.
-* It is now possible to search your timelines with ctrl+f and f3/shift+f3.
-* List timelines now stream.
-* Opening the select user dialog is now much more responsive.
-* Pinned posts are now shown at the top of user timelines.
-* Removed the buggy global template system for now. There are plans to rewrite it in a much more stable way in the future.
-* The default templates now hide the reply/boost/favorite counts if they're zero.
-* The post details webview will now come up much faster and smoother.
-* The timeline switching hotkeys now work in the list of timelines as well as the timeline list.
-* You can now pin/unpin posts.
+- Added an option to hide the totals of polls. Poll durations now use preset times.
+- Added an option to open your previous timelines again at startup.
+- Added an option to show link previews in the timeline.
+- Added more file types to the add media dialog.
+- Added management of lists, and list timelines.
+- Added support for reading and writing quote posts.
+- Added a Filters tab to the options, to filter your timelines in Fedra.
+- Added scheduled posts.
+- Added the `{{ booster_username }}` template variable, to show handles the same way everywhere.
+- Added a thread mode check box to the compose dialog. When it is on, the dialog opens again after each post, as a reply to your previous post.
+- The compose dialog now uses the default post visibility of your account.
+- Fixed duplicate messages in the Direct Messages timeline.
+- Fixed the description fields not showing in the add media dialog.
+- Fixed the post context menu not showing shortcuts and post actions such as Edit and Delete.
+- Fixed the post context menu showing incorrect labels on boosted and favorited posts.
+- You can now accept and reject follow requests.
+- You can now move timelines with `Ctrl+Shift+Left Arrow` and `Ctrl+Shift+Right Arrow`.
+- You can now search your timelines with `Ctrl+F`, `F3`, and `Shift+F3`.
+- List timelines now update live.
+- The select user dialog now opens much faster.
+- User timelines now show pinned posts at the top.
+- Removed the global template system, which had problems. We plan to write a more stable version.
+- The default templates now hide the reply, boost, and favorite counts when they are zero.
+- The post details dialog now opens much faster.
+- The timeline switching shortcuts now also work in the Timelines list.
+- You can now pin and unpin posts.
 
 ### Version 0.2.0
-* Added a webview-based dialog for viewing the raw contents of a post.
-* Added a new option, checked by default, to remove tracking parameters from URLs.
-* Added an option to check for development builds upon update, not new stable releases.
-* Added timeline templates, allowing you to customize everything about how Fedra's timeline entries are displayed. The relative/absolute time check box has also been removed from the options dialog, and is now settable per-template. See the templates section of the readme for more details.
-* Filters are now respected in the timeline, and you can manage them in a super basic sense. This capability will be expanded in a future version.
-* Fixed attaching media, so more than teeny tiny files work now.
-* Fixed the handling of JSON responses from certain servers.
-* Hopefully fixed a rare but annoying crash in the new post dialog.
-* It is now possible to type past the character limit once again, but you will get a warning sound when you do so.
-* Post statistics are now properly pluralized, so you will now hear "1 reply" instead of "1 replies".
-* pressing shift+f10 or the context menu key on a post will now bring up a menu of post actions.
-* Replies are properly grouped in threads now.
-* The  mentions dialog will now include users who haven't fedrated with your instance yet.
-* The open user dialog will now be automatically prepopulated with all of the usernames that appear in your current timeline.
-* When closing a timeline, the name of the newly focused one will now be spoken before the timeline contents, as intended.
+- Added a dialog that shows the full contents of a post.
+- Added an option to remove tracking parameters from URLs. It is on by default.
+- Added an option to check for test builds instead of stable releases.
+- Added timeline templates, to set how Fedra shows timeline entries. The relative and absolute time check box is removed from the options. You can now set it in each template. For more information, see the Templates Tab section.
+- Fedra now uses your filters in the timeline, and you can manage them in a basic way. A future version will add more.
+- Fixed media attachments. Files that are not very small now attach correctly.
+- Fixed the handling of JSON responses from some servers.
+- Fixed a rare problem that closed the compose dialog.
+- You can type more than the character limit again. Fedra plays a warning sound when you do.
+- Post statistics now use the correct plural. For example, you now hear "1 reply", not "1 replies".
+- `Shift+F10` or the Applications key on a post now opens a menu of post actions.
+- Replies now show in threads correctly.
+- The mentions dialog now includes users that your instance doesn't know yet.
+- The open user dialog now shows all the user names from your current timeline.
+- When you close a timeline, Fedra now announces the name of the new timeline before its contents.
 
 ### Version 0.1.1
-* Added the ability for you to set the language of your posts!
-* API errors are now included in error output in a brief form.
-* Fixed Delete not closing timelines when the list had keyboard focus.
-* Improved default configuration values for new Fedra installs.
-* Reduced unnecessary screen reader output when entering the compose dialog.
-* The compose dialog now enforces the instance's character limit.
-* The focused timeline name is now spoken when using Ctrl+1-9, matching left/right arrow behavior.
-* The reply dialog title is now announced with the correct character count on first focus.
-* There is now only one key to back out of a timeline and close it, Ctrl+W normally or backspace in quick keys mode.
-* Updated the README and performed internal code cleanup.
-* When a timeline is closed, the newly focused timeline is now announced.
+- Added the post language setting.
+- Error messages now include a short form of API errors.
+- Fixed `Delete` not closing timelines when the list had the keyboard focus.
+- Better default settings for new installations.
+- Screen readers now read less when you open the compose dialog.
+- The compose dialog now enforces the character limit of the instance.
+- `Ctrl+1` through `Ctrl+9` now announce the name of the timeline, as the arrow keys do.
+- The reply dialog title now shows the correct character count when it first gets the focus.
+- There is now one key to close a timeline: `Ctrl+W` in Normal mode, or `Backspace` in Quick Action Keys mode.
+- Updated the readme and cleaned up the code.
+- When you close a timeline, Fedra now announces the new timeline.
 
 ### Version 0.1.0
-* Initial release of the Fedra desktop Mastodon client, currently for Windows only.
+- The first release of Fedra, a Mastodon client for Windows.
