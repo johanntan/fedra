@@ -1440,8 +1440,9 @@ checksum = "11d3d7f243d5c5a8b9bb5d6dd2b1602c0cb0b9db1621bafc7ed66e35ff9fe092"
 
 [[package]]
 name = "live-region"
-version = "0.3.2"
-source = "git+https://github.com/trypsynth/live-region#c7d637ea0ddbcb0d296097e6487d113fb4775ab1"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7b3c726b63a8bc31584b55bd512caf673fe65215420cac2e1fc8d3901ccf5203"
 dependencies = [
  "objc",
  "pkg-config",
@@ -2639,7 +2640,8 @@ dependencies = [
 [[package]]
 name = "ship-shape"
 version = "0.3.0"
-source = "git+https://github.com/trypsynth/ship-shape#ae40bc231355a95d35f43bd212223a7f4ab4d8dc"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "24d8d8a8c8427c40bf6c501aa42af704d1be34ffa35bd3f87dd569a4fff81899"
 dependencies = [
  "homeport",
  "minisign-verify",
