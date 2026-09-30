@@ -70,6 +70,14 @@ pub fn bind_input_handlers(
 	context_menu_state: Rc<Cell<ContextMenuState>>,
 	shortcuts_cell: Rc<RefCell<ShortcutsConfig>>,
 ) {
+	#[cfg(target_os = "macos")]
+	super::mac_shortcuts::install(
+		parts,
+		ui_tx.clone(),
+		is_shutting_down.clone(),
+		quick_action_keys_enabled.clone(),
+		shortcuts_cell.clone(),
+	);
 	let ui_tx_selector = ui_tx.clone();
 	let shutdown_selector = is_shutting_down.clone();
 	let suppress_selector = suppress_selection.clone();
