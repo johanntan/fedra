@@ -458,6 +458,30 @@ Press `Ctrl+I` (or `I` in Quick Action Keys mode) on a post with media attachmen
 
 ## Changelog
 
+### Version 0.7.0
+* Added Clear Timeline and Clear All Timelines.
+* Added a macOS version: a native app on a drag-to-install disk image, signed and notarized by Apple.
+* Added a note to the profiles of people who don't follow you that your direct messages may reach them as a message request.
+* Added a run at startup option to the installer, which keeps Fedra hidden at startup if you left it hidden.
+* Added an invisible interface: global shortcuts that move through your timelines, read posts, and perform almost any Fedra action from anywhere, spoken through your screen reader. Turn it on from the new Invisible Interface tab of the options dialog.
+* Added an option to sync your Home and Notifications position with your server, and one to load older posts until Fedra finds your saved position.
+* Added message requests. When your server holds back private mentions from people you don't follow, Fedra tells you, and `File -> Message Requests...` lets you accept or dismiss them.
+* Added new post notifications for any timeline that updates live, and an optional notification sound of its own for each timeline.
+* Added permanent timelines, which can't be closed until you make them closable again.
+* Added the alt text of media attachments to the post details dialog.
+* Added user aliases, to show anyone under a name you choose.
+* Autocomplete now works inline as you type.
+* Classic Windows Notifications is now called operating system notifications.
+* Fedra is about a fifth smaller.
+* Notification types can now show in timelines without making a sound or notification.
+* Open timelines are now saved per account, and whenever they change.
+* Profile editing now shows as many fields as your instance allows.
+* Fixed long profile field values widening the edit profile dialog past the window.
+* Fixed numpad keys triggering the wrong shortcuts with Num Lock off.
+* Fixed pressing Space while media was loading needing another press to start playback.
+* Fixed replying to your own post mentioning yourself.
+* Fixed the relationship heading showing on profiles with nothing under it.
+
 ### Version 0.6.0
 * Added a customizable favorite template, with `{{ favoriter }}` and `{{ favoriter_username }}` variables.
 * Added a notification types dialog to the general options, so you can pick which kinds of notifications reach you.
