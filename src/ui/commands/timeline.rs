@@ -297,11 +297,16 @@ pub(super) fn toggle_notifications(ctx: &mut UiCommandContext<'_>) {
 		account.notifying_timelines.remove(index);
 		false
 	} else {
-		account.notifying_timelines.push(active_type);
+		account.notifying_timelines.push(active_type.clone());
 		true
 	};
 	let _ = state.save_config();
-	ctx.live_region.announce(if notifying { "Notifications on" } else { "Notifications off" });
+	let name = active_type.display_name();
+	ctx.live_region.announce(&if notifying {
+		format!("Notifications for {name} on")
+	} else {
+		format!("Notifications for {name} off")
+	});
 }
 
 pub(super) fn set_sound(ctx: &mut UiCommandContext<'_>) {
